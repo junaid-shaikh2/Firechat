@@ -1,115 +1,149 @@
-// component for authentication in firebase (for the todo app) in this nextjs app
-
 "use client";
 
-import React from "react";
-import { useState, useEffect } from "react";
-import { doc, collection, setDoc } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
-import { db } from "../lib/firebase";
-import { initializeApp } from "firebase/app";
-import { getDoc, getDocs, addDoc } from "firebase/firestore";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../lib/firebase";
-import page from "../chat/dm/page";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
-  getAuth,
   GoogleAuthProvider,
-  signInWithEmailAndPassword,
   signInWithPopup,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
 } from "firebase/auth";
+import { auth, db } from "../lib/firebase";
+import { setDoc, doc, getDoc } from "firebase/firestore";
 
-const Page = () => {
-  const [name, setName] = useState<string | null>("");
-  const [email, setEmail] = useState<string | null>("");
+export default function AuthPage() {
+  const [isSignup, setIsSignup] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
   const provider = new GoogleAuthProvider();
 
-  //   adding a user in firestore database if not already present
-
+  // Google Sign-in
   const signInWithGoogle = async () => {
     try {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
-      if (user) {
-        setName(user.displayName);
-        setEmail(user.email);
-        console.log(user.uid);
-        console.log("hello");
 
+      if (user) {
         const userRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userRef);
 
         if (!userSnap.exists()) {
           await setDoc(userRef, {
             uid: user.uid,
-            name: user.displayName,
+            name: user.displayName || user.email?.split("@")[0],
             email: user.email,
           });
-          console.log("User added to Firestore with UID:", user.uid);
-        } else {
-          console.log("User already exists in Firestore with UID:", user.uid);
         }
+
+        router.push("/chat/dm");
       }
-    } catch (error) {
-      console.log("helloq");
-      console.error("Error signing in with Google:", error);
+    } catch (error: any) {
+      console.error("Google Sign-in Error:", error);
+      setError(error.message);
     }
   };
 
-  //   createUserWithEmailAndPassword(auth, email, password)
-  //     .then((userCredential) => {
-  //       // Signed up
-  //       const user = userCredential.user;
-  //       console.log(user);
-  //     })
-  //     .catch((error) => {
-  //       const errorCode = error.code;
-  //       const errorMessage = error.message;
-  //       console.log(errorCode, errorMessage);
-  //     });
+  // Email/Password login/signup
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      if (isSignup) {
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+        const user = userCredential.user;
+
+        await setDoc(doc(db, "users", user.uid), {
+          uid: user.uid,
+          name: user.email?.split("@")[0],
+          email: user.email,
+        });
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+      }
+
+      router.push("/chat/dm");
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <>
-      <h1>Login or </h1>
-      <main className="min-h-screen flex flex-col items-center justify-center bg-gray-100 px-4">
-        {/* Google Sign-in Button */}
-        <button
-          onClick={signInWithGoogle}
-          className="flex items-center gap-3 px-6 py-3 border border-gray-300 rounded-lg shadow-md bg-white hover:bg-gray-50 transition text-gray-700 font-medium"
-        >
-          {/* Google "G" logo */}
+    <main className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+      <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-sm">
+        <h1 className="text-3xl font-bold text-center mb-2 text-gray-800">
+          FireChat 💬
+        </h1>
+        <p className="text-center text-gray-600 mb-6">
+          {isSignup ? "Create your account" : "Login to continue"}
+        </p>
 
-          <span className="text-sm font-medium">Sign in with Google</span>
-        </button>
+        <form onSubmit={handleAuth} className="space-y-4">
+          <input
+            type="email"
+            placeholder="Email"
+            className="w-full text-black border px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-400"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            className="w-full text-black border px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-400"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          {error && <p className="text-red-500 text-sm">{error}</p>}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 font-semibold transition"
+          >
+            {loading ? "Please wait..." : isSignup ? "Sign Up" : "Login"}
+          </button>
+        </form>
 
-        {/* dm page */}
-        {/* Example: Render something if user is authenticated */}
-        {name && email && (
-          <div className="mt-8 p-6 bg-white rounded-lg shadow-md w-full max-w-sm text-center">
-            <h2 className="text-lg font-semibold text-gray-800">
-              Welcome, {name}!
-            </h2>
-            <p className="text-sm text-gray-600">{email}</p>
-            <Page />
+        <div className="mt-6">
+          <div className="flex items-center my-4">
+            <div className="flex-grow border-t border-gray-300"></div>
+            <span className="mx-2 text-gray-500 text-sm">or</span>
+            <div className="flex-grow border-t border-gray-300"></div>
           </div>
-        )}
 
-        {/* User Info Card */}
-        {/* {name && (
-          <div className="mt-8 p-6 bg-white rounded-lg shadow-md w-full max-w-sm text-center">
-            <img
-            // src={photoUrl ?? undefined}
-            // alt="Profile"
-            // className="w-20 h-20 rounded-full mx-auto mb-4 shadow"
-            />
-            <h1 className="text-lg font-semibold text-gray-800">{name}</h1>
-            <p className="text-sm text-gray-600">{email}</p>
-          </div>
-        )} */}
-      </main>
-    </>
+          <button
+            onClick={signInWithGoogle}
+            className="flex items-center justify-center gap-3 w-full border border-gray-300 rounded-lg shadow-sm bg-white hover:bg-gray-50 py-2 transition"
+          >
+            <img src="/google-logo.png" alt="Google Logo" className="w-6 h-6" />
+            <span className="text-gray-700 font-medium">
+              Continue with Google
+            </span>
+          </button>
+        </div>
+
+        <p className="text-center text-sm mt-4 text-gray-700">
+          {isSignup ? "Already have an account?" : "Don't have an account?"}
+          <button
+            onClick={() => setIsSignup(!isSignup)}
+            className="text-blue-600 ml-1 hover:underline"
+          >
+            {isSignup ? "Login" : "Sign Up"}
+          </button>
+        </p>
+      </div>
+    </main>
   );
-};
-
-export default Page;
+}
