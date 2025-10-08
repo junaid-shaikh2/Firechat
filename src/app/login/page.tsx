@@ -17,6 +17,7 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [name, setName] = useState("");
   const router = useRouter();
 
   const provider = new GoogleAuthProvider();
@@ -24,6 +25,7 @@ export default function AuthPage() {
   // Google Sign-in
   const signInWithGoogle = async () => {
     try {
+      setLoading(true);
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
@@ -44,6 +46,8 @@ export default function AuthPage() {
     } catch (error: any) {
       console.error("Google Sign-in Error:", error);
       setError(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -64,7 +68,7 @@ export default function AuthPage() {
 
         await setDoc(doc(db, "users", user.uid), {
           uid: user.uid,
-          name: user.email?.split("@")[0],
+          name,
           email: user.email,
         });
       } else {
@@ -80,70 +84,146 @@ export default function AuthPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-sm">
-        <h1 className="text-3xl font-bold text-center mb-2 text-gray-800">
-          FireChat 💬
-        </h1>
-        <p className="text-center text-gray-600 mb-6">
-          {isSignup ? "Create your account" : "Login to continue"}
-        </p>
+    <div>
+      <main className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
+        <div className="bg-white p-8 rounded-2xl shadow-md w-full max-w-sm">
+          <h1 className="text-3xl font-bold text-center mb-2 text-gray-800">
+            FireChat 💬
+          </h1>
+          <p className="text-center text-gray-600 mb-6">
+            {isSignup ? "Create your account" : "Login to continue"}
+          </p>
 
-        <form onSubmit={handleAuth} className="space-y-4">
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full text-black border px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-400"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full text-black border px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-400"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 font-semibold transition"
-          >
-            {loading ? "Please wait..." : isSignup ? "Sign Up" : "Login"}
-          </button>
-        </form>
+          <form onSubmit={handleAuth} className="space-y-4">
+            {/* NAME FIELD */}
+            {isSignup && (
+              <div className="relative">
+                <input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder=" "
+                  required
+                  className="peer w-full rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-black focus:outline-none transition-all"
+                />
+                <label
+                  htmlFor="name"
+                  className="absolute left-3 top-3 bg-white px-1 text-gray-500 transition-all duration-200
+                peer-placeholder-shown:top-3 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base
+                peer-focus:-top-2 peer-focus:text-sm peer-valid:-top-2 peer-valid:text-sm"
+                >
+                  Name
+                </label>
+              </div>
+            )}
 
-        <div className="mt-6">
-          <div className="flex items-center my-4">
-            <div className="flex-grow border-t border-gray-300"></div>
-            <span className="mx-2 text-gray-500 text-sm">or</span>
-            <div className="flex-grow border-t border-gray-300"></div>
+            {/* EMAIL FIELD */}
+            <div className="relative">
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder=" "
+                required
+                className="peer w-full rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-black focus:outline-none transition-all"
+              />
+              <label
+                htmlFor="email"
+                className="absolute left-3 top-3 bg-white px-1 text-gray-500 transition-all duration-200
+              peer-placeholder-shown:top-3 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base
+              peer-focus:-top-2 peer-focus:text-sm peer-[&:not(:placeholder-shown)]:-top-2 peer-[&:not(:placeholder-shown)]:text-sm"
+              >
+                Email
+              </label>
+            </div>
+
+            {/* PASSWORD FIELD */}
+            <div className="relative">
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder=" "
+                required
+                className="peer w-full rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-black focus:outline-none transition-all"
+              />
+              <label
+                htmlFor="password"
+                className="absolute left-3 top-3 bg-white px-1 text-gray-500 transition-all duration-200
+              peer-placeholder-shown:top-3 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base
+              peer-focus:-top-2 peer-focus:text-sm peer-valid:-top-2 peer-valid:text-sm"
+              >
+                Password
+              </label>
+            </div>
+
+            {/* SUBMIT BUTTON */}
+            <div className="flex justify-center">
+              <button
+                type="submit"
+                disabled={loading}
+                className={`w-full py-3 rounded-lg text-white font-semibold transition 
+            ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"}`}
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Loading...</span>
+                  </div>
+                ) : isSignup ? (
+                  "Sign Up"
+                ) : (
+                  "Login"
+                )}
+              </button>
+            </div>
+          </form>
+
+          {/* OR Divider */}
+          <div className="mt-6">
+            <div className="flex items-center my-4">
+              <div className="flex-grow border-t border-gray-300"></div>
+              <span className="mx-2 text-gray-500 text-sm">or</span>
+              <div className="flex-grow border-t border-gray-300"></div>
+            </div>
+
+            <button
+              onClick={signInWithGoogle}
+              disabled={loading}
+              className="flex items-center justify-center gap-3 w-full border border-gray-300 rounded-lg shadow-sm bg-white hover:bg-gray-50 py-2 transition"
+            >
+              <img
+                src="/google-logo.png"
+                alt="Google Logo"
+                className="w-6 h-6"
+              />
+              <span className="text-gray-700 font-medium">
+                Continue with Google
+              </span>
+            </button>
           </div>
 
-          <button
-            onClick={signInWithGoogle}
-            className="flex items-center justify-center gap-3 w-full border border-gray-300 rounded-lg shadow-sm bg-white hover:bg-gray-50 py-2 transition"
-          >
-            <img src="/google-logo.png" alt="Google Logo" className="w-6 h-6" />
-            <span className="text-gray-700 font-medium">
-              Continue with Google
-            </span>
-          </button>
-        </div>
+          {/* TOGGLE LOGIN/SIGNUP */}
 
-        <p className="text-center text-sm mt-4 text-gray-700">
-          {isSignup ? "Already have an account?" : "Don't have an account?"}
-          <button
-            onClick={() => setIsSignup(!isSignup)}
-            className="text-blue-600 ml-1 hover:underline"
-          >
-            {isSignup ? "Login" : "Sign Up"}
-          </button>
-        </p>
-      </div>
-    </main>
+          <p className="text-center text-[13px] mt-5 text-gray-500">
+            {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
+            <button
+              onClick={() => setIsSignup(!isSignup)}
+              className="font-medium text-gray-800 hover:text-black hover:underline-offset-4 hover:underline transition-all duration-200"
+            >
+              {isSignup ? "Login" : "Sign Up"}
+            </button>
+          </p>
+
+          {/* ERROR MESSAGE */}
+          {error && (
+            <p className="text-red-500 text-sm text-center mt-3">{error}</p>
+          )}
+        </div>
+      </main>
+    </div>
   );
 }
