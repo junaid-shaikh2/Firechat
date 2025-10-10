@@ -38,7 +38,9 @@ export default function DMPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // NEW: control mobile sidebar visibility
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(
+    typeof window !== "undefined" ? window.innerWidth >= 640 : true
+  );
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
