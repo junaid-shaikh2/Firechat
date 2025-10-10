@@ -4,10 +4,7 @@ import { auth, db } from "../../lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import {
   collection,
-  // query,
   onSnapshot,
-  // addDoc,
-  // orderBy,
   arrayUnion,
   getDoc,
   doc,
@@ -19,9 +16,7 @@ import Sidebar from "../../components/dm/Sidebar";
 import ChatWindow from "../../components/dm/ChatWindow";
 import Modal from "../../components/dm/Modal";
 import ChatHeader from "../../components/dm/ChatHeader";
-import { User } from "@/app/types/interface";
-import { Message } from "@/app/types/interface";
-// import { ChatWindowProps } from "@/app/types/interface";
+import { User, Message } from "@/app/types/interface";
 
 const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
 const CLOUDINARY_PRESET_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_PRESET_NAME!;
@@ -36,8 +31,6 @@ export default function DMPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // NEW: control mobile sidebar visibility
   const [isSidebarOpen, setIsSidebarOpen] = useState(
     typeof window !== "undefined" ? window.innerWidth >= 640 : true
   );
@@ -69,7 +62,7 @@ export default function DMPage() {
     return () => unsubscribe();
   }, [currentUser]);
 
-  // Messages (reading conversation doc with messages array)
+  // Messages
   useEffect(() => {
     if (!currentUser || !selectedUser) return;
     const conversationId = [currentUser.uid, selectedUser.uid].sort().join("_");
@@ -102,26 +95,26 @@ export default function DMPage() {
     );
   };
 
-  // helper to select user and close sidebar on mobile
   const handleSelectUser = (user: User) => {
     setSelectedUser(user);
-    // on small screens close sidebar for a focused chat view
     if (typeof window !== "undefined" && window.innerWidth < 640) {
       setIsSidebarOpen(false);
     }
   };
 
-  // Send
+  // Send Message
   const sendMessage = async () => {
     if (!newMessage.trim() || !currentUser || !selectedUser) return;
+    const text = newMessage.trim();
     setNewMessage("");
+
     const conversationId = [currentUser.uid, selectedUser.uid].sort().join("_");
     const convoRef = doc(db, "dmChats", conversationId);
 
     const newMsg = {
       from: currentUser.uid,
       to: selectedUser.uid,
-      text: newMessage.trim(),
+      text,
       timestamp: new Date(),
     };
 
@@ -141,9 +134,12 @@ export default function DMPage() {
         updatedAt: newMsg.timestamp,
       });
     }
+
+    // Scroll to bottom after sending
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Image Upload in cloudinary and connecting to firebase
+  // Image Upload
   useEffect(() => {
     if (image && currentUser && selectedUser) {
       const uploadAndSend = async () => {
@@ -194,10 +190,7 @@ export default function DMPage() {
 
     const response = await fetch(
       `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-      {
-        method: "POST",
-        body: formData,
-      }
+      { method: "POST", body: formData }
     );
 
     if (!response.ok) {
@@ -224,8 +217,8 @@ export default function DMPage() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#E5E5EA]">
-      {/* 🟢 Mobile overlay behind sidebar (click to close) */}
+    <div className="flex flex-col h-[100dvh] bg-[#E5E5EA]">
+      {/* Mobile overlay */}
       {isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black/30 z-10 sm:hidden"
@@ -233,7 +226,7 @@ export default function DMPage() {
         />
       )}
 
-      {/* 🧭 Sidebar */}
+      {/* Sidebar */}
       <Sidebar
         users={users}
         filteredUsers={filteredUsers}
@@ -244,9 +237,10 @@ export default function DMPage() {
         onLogout={() => setIsModalOpen(true)}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
+        className="z-20"
       />
 
-      {/* 💬 Chat / Placeholder Area */}
+      {/* Chat Area */}
       <div className="flex-1 flex flex-col h-full min-h-0 w-full">
         {selectedUser ? (
           <>
@@ -254,6 +248,7 @@ export default function DMPage() {
               user={selectedUser}
               onBack={() => setIsSidebarOpen(true)}
               onLogout={() => setIsModalOpen(true)}
+              className="z-20"
             />
             <ChatWindow
               messages={messages}
@@ -267,8 +262,8 @@ export default function DMPage() {
           </>
         ) : (
           <>
-            {/* 🧭 Mobile Top Bar (when no chat is selected) */}
-            <div className="sm:hidden flex items-center justify-between p-4 border-b bg-white shadow-sm">
+            {/* Mobile Top Bar when no chat is selected */}
+            <div className="sm:hidden flex items-center justify-between p-4 border-b bg-white shadow-sm z-20">
               <h2 className="font-semibold text-gray-800 text-lg">Chats</h2>
               <button
                 onClick={() => setIsModalOpen(true)}
@@ -278,8 +273,8 @@ export default function DMPage() {
               </button>
             </div>
 
-            {/* Placeholder content */}
-            <div className="flex flex-col items-center justify-center h-full text-gray-600 px-4 text-center w-full">
+            {/* Placeholder */}
+            <div className="flex flex-col items-center justify-center flex-1 text-gray-600 px-4 text-center w-full">
               <h2 className="text-lg font-semibold mb-2">
                 Select a chat to start messaging
               </h2>
@@ -294,7 +289,7 @@ export default function DMPage() {
         )}
       </div>
 
-      {/* 🚪 Logout Modal */}
+      {/* Logout Modal */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

@@ -24,7 +24,7 @@ export default function Sidebar({
         "sm:static sm:translate-x-0 sm:inset-auto sm:z-auto sm:w-72",
       ].join(" ")}
     >
-      {/* Mobile header with close button */}
+      {/* Mobile  with close button */}
       <div className="sm:hidden mb-3 flex items-center justify-between">
         <h2 className="font-semibold text-gray-800 text-lg">Direct Messages</h2>
         <button
@@ -66,7 +66,7 @@ export default function Sidebar({
         ))}
       </div>
       {/* Logout Button */}
-      <div className="mt-4 flex flex-col gap-2 shrink-0 hidden sm:flex">
+      <div className="mt-4  flex-col gap-2 shrink-0 hidden  sm:flex">
         <button
           onClick={onLogout}
           className="bg-gray-700 cursor-pointer hover:bg-gray-900 text-white py-2 rounded-full"

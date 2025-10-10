@@ -8,6 +8,7 @@ export interface ChatHeaderProps {
   user: User;
   onLogout?: () => void; // NEW: optional logout for mobile
   onBack?: () => void; // NEW: optional back for mobile
+  className?: string;
 }
 
 export interface MessageBubbleProps {
@@ -54,4 +55,5 @@ export interface SidebarProps {
   // NEW:
   isOpen?: boolean;
   onClose?: () => void;
+  className?: string;
 }
