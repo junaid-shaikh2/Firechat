@@ -268,9 +268,10 @@ export default function DMPage() {
             <h2 className="text-lg font-semibold mb-2">
               Select a chat to start messaging
             </h2>
-            <p className="text-sm text-gray-400">
+            {/* making it hide for the screens greater than small */}
+            {/* <p className="text-sm text-gray-400 sm:hidden">
               Open your sidebar to choose a user.
-            </p>
+            </p> */}
             <button
               onClick={() => setIsSidebarOpen(true)}
               className="sm:hidden mt-4 bg-blue-500 text-white px-4 py-2 rounded-full"
