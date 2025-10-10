@@ -1,5 +1,5 @@
 import React from "react";
-import { ModalProps } from "@/app/types/inferface";
+import { ModalProps } from "@/app/types/interface";
 
 export default function Modal({
   isOpen,

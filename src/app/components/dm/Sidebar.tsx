@@ -1,6 +1,6 @@
+"use client";
 import React from "react";
-import { User } from "@/app/types/inferface";
-import { SidebarProps } from "@/app/types/inferface";
+import { SidebarProps } from "@/app/types/interface";
 
 export default function Sidebar({
   users,
@@ -10,41 +10,63 @@ export default function Sidebar({
   onSelectUser,
   onSearch,
   onLogout,
+  isOpen = false,
+  onClose,
 }: SidebarProps) {
+  const list = searchTerm.trim() ? filteredUsers : users;
+
   return (
-    <div className="border-r p-4 bg-white flex flex-col h-full min-h-0">
-      <div className="flex-1 min-h-0 flex flex-col">
-        <h2 className="font-semibold mb-3 text-gray-800 text-lg">
-          Direct Messages
-        </h2>
+    <aside
+      className={[
+        // Mobile behavior
+        "fixed inset-y-0 left-0 z-20  bg-white border-r p-4 flex flex-col min-h-0 transform transition-transform duration-200",
+        isOpen ? "translate-x-0" : "-translate-x-full",
+        "sm:static sm:translate-x-0 sm:inset-auto sm:z-auto sm:w-72",
+      ].join(" ")}
+    >
+      {/* Mobile header with close button */}
+      <div className="sm:hidden mb-3 flex items-center justify-between">
+        <h2 className="font-semibold text-gray-800 text-lg">Direct Messages</h2>
+        <button
+          type="button"
+          onClick={onClose}
+          className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 cursor-pointer"
+        >
+          ✕
+        </button>
+      </div>
 
-        {/* Search Bar */}
-        <div className="mb-3">
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={onSearch}
-            placeholder="Search users..."
-            className="border border-gray-300 text-gray-600 focus:border-gray-500 focus:ring-0 focus:outline-none px-3 py-2 rounded-lg w-full text-sm bg-gray-50"
-          />
-        </div>
+      {/* Desktop title */}
+      <h2 className="hidden sm:block font-semibold mb-3 text-gray-800 text-lg">
+        Direct Messages
+      </h2>
 
-        {/* Users List */}
-        <div className="flex-1 min-h-0 overflow-y-auto space-y-1 overscroll-contain">
-          {(searchTerm.trim() ? filteredUsers : users).map((user) => (
-            <div
-              key={user.uid}
-              className={`p-2 rounded-xl cursor-pointer text-sm transition ${
-                selectedUser?.uid === user.uid
-                  ? "bg-gray-500 text-white font-semibold opacity-80"
-                  : "hover:bg-gray-100 text-gray-800"
-              }`}
-              onClick={() => onSelectUser(user)}
-            >
-              {user.name || user.email}
-            </div>
-          ))}
-        </div>
+      {/* Search Bar */}
+      <div className="mb-3">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={onSearch}
+          placeholder="Search users..."
+          className="border border-gray-300 text-gray-600 focus:border-gray-500 focus:ring-0 focus:outline-none px-3 py-2 rounded-lg w-full text-sm bg-gray-50"
+        />
+      </div>
+
+      {/* Users List */}
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-1 overscroll-contain">
+        {list.map((user) => (
+          <div
+            key={user.uid}
+            className={`p-2 rounded-xl cursor-pointer text-sm transition ${
+              selectedUser?.uid === user.uid
+                ? "bg-gray-500 text-white font-semibold opacity-80"
+                : "hover:bg-gray-100 text-gray-800"
+            }`}
+            onClick={() => onSelectUser(user)}
+          >
+            {user.name || user.email}
+          </div>
+        ))}
       </div>
 
       {/* Logout Button */}
@@ -56,6 +78,6 @@ export default function Sidebar({
           Logout
         </button>
       </div>
-    </div>
+    </aside>
   );
 }

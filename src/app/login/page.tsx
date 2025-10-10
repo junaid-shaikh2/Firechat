@@ -10,6 +10,7 @@ import {
 } from "firebase/auth";
 import { auth, db } from "../lib/firebase";
 import { setDoc, doc, getDoc } from "firebase/firestore";
+import Image from "next/image";
 
 export default function AuthPage() {
   const [isSignup, setIsSignup] = useState(false);
@@ -43,9 +44,10 @@ export default function AuthPage() {
 
         router.push("/chat/dm");
       }
-    } catch (error: any) {
-      console.error("Google Sign-in Error:", error);
-      setError(error.message);
+      // not using any type with the error
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      setError("Failed to sign in with Google.");
     } finally {
       setLoading(false);
     }
@@ -76,8 +78,13 @@ export default function AuthPage() {
       }
 
       router.push("/chat/dm");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (error) {
+      console.error("Authentication error:", error);
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("An unknown error occurred.");
+      }
     } finally {
       setLoading(false);
     }
@@ -195,10 +202,12 @@ export default function AuthPage() {
               disabled={loading}
               className="flex items-center justify-center gap-3 w-full border border-gray-300 rounded-lg shadow-sm bg-white hover:bg-gray-50 py-2 transition"
             >
-              <img
+              <Image
                 src="/google-logo.png"
                 alt="Google Logo"
                 className="w-6 h-6"
+                width={24}
+                height={24}
               />
               <span className="text-gray-700 font-medium">
                 Continue with Google

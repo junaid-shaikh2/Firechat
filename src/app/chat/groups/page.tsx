@@ -347,3 +347,13 @@
 //     </div>
 //   );
 // }
+
+// src/app/chat/groups/page.tsx
+
+export default function GroupsPage() {
+  return (
+    <div className="flex items-center justify-center h-screen text-gray-500">
+      Group Chat feature coming soon...
+    </div>
+  );
+}
