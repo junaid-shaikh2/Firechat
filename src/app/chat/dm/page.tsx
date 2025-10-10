@@ -251,6 +251,7 @@ export default function DMPage() {
             <ChatHeader
               user={selectedUser}
               onBack={() => setIsSidebarOpen(true)}
+              onLogout={() => setIsModalOpen(true)}
             />
             <ChatWindow
               messages={messages}
@@ -263,22 +264,31 @@ export default function DMPage() {
             />
           </>
         ) : (
-          // ✅ Default placeholder when no chat selected
-          <div className="flex flex-col items-center justify-center h-full text-gray-600 px-4 text-center w-full">
-            <h2 className="text-lg font-semibold mb-2">
-              Select a chat to start messaging
-            </h2>
-            {/* making it hide for the screens greater than small */}
-            {/* <p className="text-sm text-gray-400 sm:hidden">
-              Open your sidebar to choose a user.
-            </p> */}
-            <button
-              onClick={() => setIsSidebarOpen(true)}
-              className="sm:hidden mt-4 bg-blue-500 text-white px-4 py-2 rounded-full"
-            >
-              Open Chats
-            </button>
-          </div>
+          <>
+            {/* 🧭 Mobile Top Bar (when no chat is selected) */}
+            <div className="sm:hidden flex items-center justify-between p-4 border-b bg-white shadow-sm">
+              <h2 className="font-semibold text-gray-800 text-lg">Chats</h2>
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="bg-gray-700 text-white text-sm px-3 py-1 rounded-full hover:bg-gray-900"
+              >
+                Logout
+              </button>
+            </div>
+
+            {/* Placeholder content */}
+            <div className="flex flex-col items-center justify-center h-full text-gray-600 px-4 text-center w-full">
+              <h2 className="text-lg font-semibold mb-2">
+                Select a chat to start messaging
+              </h2>
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="sm:hidden mt-4 bg-blue-500 text-white px-4 py-2 rounded-full"
+              >
+                Open Chats
+              </button>
+            </div>
+          </>
         )}
       </div>
 

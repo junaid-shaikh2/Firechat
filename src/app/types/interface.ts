@@ -6,6 +6,7 @@ export interface User {
 
 export interface ChatHeaderProps {
   user: User;
+  onLogout?: () => void; // NEW: optional logout for mobile
   onBack?: () => void; // NEW: optional back for mobile
 }
 

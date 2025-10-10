@@ -35,12 +35,10 @@ export default function Sidebar({
           ✕
         </button>
       </div>
-
       {/* Desktop title */}
       <h2 className="hidden sm:block font-semibold mb-3 text-gray-800 text-lg">
         Direct Messages
       </h2>
-
       {/* Search Bar */}
       <div className="mb-3">
         <input
@@ -51,7 +49,6 @@ export default function Sidebar({
           className="border border-gray-300 text-gray-600 focus:border-gray-500 focus:ring-0 focus:outline-none px-3 py-2 rounded-lg w-full text-sm bg-gray-50"
         />
       </div>
-
       {/* Users List */}
       <div className="flex-1 min-h-0 overflow-y-auto space-y-1 overscroll-contain">
         {list.map((user) => (
@@ -68,9 +65,8 @@ export default function Sidebar({
           </div>
         ))}
       </div>
-
       {/* Logout Button */}
-      <div className="mt-4 flex flex-col gap-2 shrink-0">
+      <div className="mt-4 flex flex-col gap-2 shrink-0 hidden sm:flex">
         <button
           onClick={onLogout}
           className="bg-gray-700 cursor-pointer hover:bg-gray-900 text-white py-2 rounded-full"
@@ -78,6 +74,15 @@ export default function Sidebar({
           Logout
         </button>
       </div>
+      {/* Right side: Logout button (mobile only) */}
+      {/* {!isOpen && (
+        <button
+          onClick={onLogout}
+          className="sm:hidden flex items-center gap-1 text-red-500 hover:text-red-700 font-medium"
+        >
+          <span className="w-5 h-5">Logout</span>
+        </button>
+      )} */}
     </aside>
   );
 }
