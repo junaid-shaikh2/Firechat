@@ -18,7 +18,7 @@ export default function ChatWindow({
   }, [messages, messagesEndRef]);
 
   return (
-    <div className="flex-1 flex flex-col h-full min-h-0 bg-[#E5E5EA]">
+    <div className="flex-1 flex flex-col h-full min-h-0 min-w-0 bg-[#E5E5EA] overflow-hidden">
       {/* Messages */}
       <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 space-y-2 overscroll-contain">
         {messages.map((msg, index) => {

@@ -1,4 +1,5 @@
 // ChatHeader.tsx
+"use client";
 import { ChatHeaderProps } from "@/app/types/interface";
 import Image from "next/image";
 import { ChevronLeft } from "lucide-react";
@@ -7,21 +8,23 @@ export default function ChatHeader({
   user,
   onBack,
   onLogout,
+  className = "",
 }: ChatHeaderProps) {
   return (
-    <div className="p-4 border-b bg-white flex items-center justify-between gap-3 shadow-sm">
-      {/* LEFT SECTION (Back + User Info) */}
-      <div className="flex items-center gap-3">
-        {/* Back button (mobile only) */}
+    <div
+      className={`p-3 sm:p-4 border-b bg-white flex items-center justify-between gap-3 shadow-sm ${className}`}
+      role="banner"
+    >
+      {/* Left: back + name */}
+      <div className="flex items-center gap-3 min-w-0">
         <button
           onClick={onBack}
-          className="sm:hidden text-gray-600 hover:text-black"
+          className="sm:hidden text-gray-600 hover:text-black flex-shrink-0"
           aria-label="Back"
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
 
-        {/* User Avatar */}
         <Image
           src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
             user.name || user.email || "User"
@@ -29,22 +32,23 @@ export default function ChatHeader({
           alt="User Avatar"
           width={40}
           height={40}
-          className="rounded-full hidden sm:inline-block"
+          className="rounded-full hidden sm:inline-block flex-shrink-0"
         />
 
-        {/* User Name */}
-        <span className="font-semibold text-gray-800 text-lg truncate max-w-[140px] sm:max-w-none">
+        <span className="font-semibold text-gray-800 text-lg truncate max-w-[60vw] sm:max-w-none">
           {user.name || user.email || "Unknown User"}
         </span>
       </div>
 
-      {/* RIGHT SECTION (Logout Button) */}
-      <button
-        onClick={onLogout}
-        className="sm:hidden bg-gray-700 text-white text-sm px-3 py-1 rounded-full hover:bg-gray-900"
-      >
-        Logout
-      </button>
+      {/* Right: logout (mobile-only) */}
+      <div className="flex items-center">
+        <button
+          onClick={onLogout}
+          className="sm:hidden bg-gray-700 text-white text-sm px-3 py-1 rounded-full hover:bg-gray-900"
+        >
+          Logout
+        </button>
+      </div>
     </div>
   );
 }

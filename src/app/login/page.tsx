@@ -22,7 +22,6 @@ export default function AuthPage() {
   const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
-
   const provider = new GoogleAuthProvider();
 
   const signInWithGoogle = async () => {
@@ -90,12 +89,20 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-md w-full max-w-sm">
-        <h1 className="text-center font-bold text-gray-800 sm:text-3xl text-xl mb-2">
-          FireChat 💬
+    <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7] relative overflow-hidden px-4">
+      {/* Subtle floating animation */}
+      <div className="relative z-10 bg-white p-6 sm:p-8 rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] w-full max-w-sm border border-gray-100 transition-all duration-300 hover:scale-[1.01] hover:shadow-[0_15px_40px_rgba(0,0,0,0.1)]">
+        {/* Apple-style top dots */}
+        <div className="flex items-center justify-center  gap-3 mb-4">
+          <span className="w-3 h-3 rounded-full bg-[#1c1c1c]" />
+          <span className="w-3 h-3 rounded-full bg-[#3a3a3a]" />
+          <span className="w-3 h-3 rounded-full bg-[#5a5a5a]" />
+        </div>
+
+        <h1 className="text-center font-semibold text-gray-800 text-2xl sm:text-3xl mb-1 tracking-tight">
+          FireChat
         </h1>
-        <p className="text-center text-gray-600 mb-6 text-sm sm:text-base">
+        <p className="text-center text-gray-500 mb-6 text-sm sm:text-base">
           {isSignup ? "Create your account" : "Login to continue"}
         </p>
 
@@ -109,11 +116,11 @@ export default function AuthPage() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder=" "
                 required
-                className="peer w-full rounded-lg border border-gray-300 bg-transparent px-3 sm:px-4 py-2 sm:py-3 text-black focus:outline-none transition-all"
+                className="peer w-full rounded-xl border border-gray-300 bg-transparent px-4 py-2.5 text-black focus:outline-none focus:border-gray-600 transition-all"
               />
               <label
                 htmlFor="name"
-                className="absolute left-2 sm:left-3 top-2 sm:top-3 bg-white px-1 text-gray-500 transition-all duration-200
+                className="absolute left-3 top-2.5 bg-white px-1 text-gray-500 transition-all duration-200
                 peer-placeholder-shown:top-3 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base
                 peer-focus:-top-2 peer-focus:text-sm peer-valid:-top-2 peer-valid:text-sm"
               >
@@ -130,19 +137,18 @@ export default function AuthPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder=" "
               required
-              className="peer w-full rounded-lg border border-gray-300 bg-transparent px-3 sm:px-4 py-2 sm:py-3 text-black focus:outline-none transition-all"
+              className="peer w-full rounded-xl border border-gray-300 bg-transparent px-4 py-2.5 text-black focus:outline-none focus:border-gray-600 transition-all"
             />
             <label
               htmlFor="email"
-              className="absolute left-2 sm:left-3 top-2 sm:top-3 bg-white px-1 text-gray-500 transition-all duration-200
-                peer-placeholder-shown:top-3 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base
-                peer-focus:-top-2 peer-focus:text-sm peer-[&:not(:placeholder-shown)]:-top-2 peer-[&:not(:placeholder-shown)]:text-sm"
+              className="absolute left-3 top-2.5 bg-white px-1 text-gray-500 transition-all duration-200
+              peer-placeholder-shown:top-3 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base
+              peer-focus:-top-2 peer-focus:text-sm peer-valid:-top-2 peer-valid:text-sm"
             >
               Email
             </label>
           </div>
 
-          {/* PASSWORD FIELD WITH EYE ICON */}
           <div className="relative">
             <input
               id="password"
@@ -151,48 +157,40 @@ export default function AuthPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder=" "
               required
-              className="peer w-full rounded-lg border border-gray-300 bg-transparent px-3 sm:px-4 py-2 sm:py-3 text-black focus:outline-none transition-all pr-10"
+              className="peer w-full rounded-xl border border-gray-300 bg-transparent px-4 py-2.5 text-black focus:outline-none focus:border-gray-600 transition-all pr-10"
             />
             <label
               htmlFor="password"
-              className="absolute left-2 sm:left-3 top-2 sm:top-3 bg-white px-1 text-gray-500 transition-all duration-200
-                peer-placeholder-shown:top-3 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base
-                peer-focus:-top-2 peer-focus:text-sm peer-valid:-top-2 peer-valid:text-sm"
+              className="absolute left-3 top-2.5 bg-white px-1 text-gray-500 transition-all duration-200
+              peer-placeholder-shown:top-3 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base
+              peer-focus:-top-2 peer-focus:text-sm peer-valid:-top-2 peer-valid:text-sm"
             >
               Password
             </label>
 
-            {/* Show eye only when password has value */}
             {password && (
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 text-gray-500 text-lg"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-lg"
               >
                 {showPassword ? <AiFillEyeInvisible /> : <AiFillEye />}
               </button>
             )}
           </div>
 
-          <div className="flex justify-center">
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full py-2 sm:py-3 rounded-lg text-white font-semibold transition
-                ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"}`}
-            >
-              {loading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Loading...</span>
-                </div>
-              ) : isSignup ? (
-                "Sign Up"
-              ) : (
-                "Login"
-              )}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className={`w-full py-2.5 rounded-xl text-white font-medium transition-transform duration-200
+            ${
+              loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-black hover:bg-gray-800 hover:scale-[1.02]"
+            }`}
+          >
+            {loading ? "Loading..." : isSignup ? "Sign Up" : "Login"}
+          </button>
         </form>
 
         <div className="mt-6">
@@ -205,12 +203,12 @@ export default function AuthPage() {
           <button
             onClick={signInWithGoogle}
             disabled={loading}
-            className="flex items-center justify-center gap-3 w-full border border-gray-300 rounded-lg shadow-sm bg-white hover:bg-gray-50 py-2 sm:py-3 transition"
+            className="flex items-center justify-center gap-3 w-full border border-gray-300 rounded-xl bg-white hover:bg-gray-50 py-2.5 transition-transform hover:scale-[1.02]"
           >
             <Image
               src="/google-logo.png"
               alt="Google Logo"
-              className="w-5 sm:w-6 h-5 sm:h-6"
+              className="w-5 h-5"
               width={24}
               height={24}
             />
@@ -220,11 +218,11 @@ export default function AuthPage() {
           </button>
         </div>
 
-        <p className="text-center text-gray-500 text-[12px] sm:text-[13px] mt-5">
+        <p className="text-center text-gray-500 text-[13px] mt-5">
           {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
           <button
             onClick={() => setIsSignup(!isSignup)}
-            className="font-medium text-gray-800 hover:text-black hover:underline-offset-4 hover:underline transition-all duration-200 text-sm sm:text-base"
+            className="font-medium text-gray-800 hover:underline hover:underline-offset-4 transition"
           >
             {isSignup ? "Login" : "Sign Up"}
           </button>

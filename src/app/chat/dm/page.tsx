@@ -31,9 +31,7 @@ export default function DMPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(
-    typeof window !== "undefined" ? window.innerWidth >= 640 : true
-  );
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -55,7 +53,7 @@ export default function DMPage() {
     if (!currentUser) return;
     const unsubscribe = onSnapshot(collection(db, "users"), (snapshot) => {
       const usersList = snapshot.docs
-        .map((doc) => doc.data() as User)
+        .map((d) => d.data() as User)
         .filter((u) => u.uid !== currentUser.uid);
       setUsers(usersList);
     });
@@ -100,6 +98,11 @@ export default function DMPage() {
     if (typeof window !== "undefined" && window.innerWidth < 640) {
       setIsSidebarOpen(false);
     }
+    // scroll down once chat opens
+    setTimeout(
+      () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }),
+      100
+    );
   };
 
   // Send Message
@@ -136,7 +139,10 @@ export default function DMPage() {
     }
 
     // Scroll to bottom after sending
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    setTimeout(
+      () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }),
+      50
+    );
   };
 
   // Image Upload
@@ -174,6 +180,11 @@ export default function DMPage() {
           }
 
           setImage(null);
+          setTimeout(
+            () =>
+              messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }),
+            50
+          );
         } catch (err) {
           console.error("Upload failed:", err);
         }
@@ -217,12 +228,14 @@ export default function DMPage() {
   };
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-[#E5E5EA]">
-      {/* Mobile overlay */}
+    // use 100dvh to avoid mobile vh/keyboard quirks
+    <div className="flex flex-col sm:flex-row h-screen w-full overflow-hidden bg-[#E5E5EA]">
+      {/* Overlay behind sidebar on mobile */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/30 z-10 sm:hidden"
+          className="fixed inset-0 bg-black/30 z-20 sm:hidden"
           onClick={() => setIsSidebarOpen(false)}
+          aria-hidden
         />
       )}
 
@@ -237,18 +250,18 @@ export default function DMPage() {
         onLogout={() => setIsModalOpen(true)}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
-        className="z-20"
+        className="z-30"
       />
 
-      {/* Chat Area */}
-      <div className="flex-1 flex flex-col h-full min-h-0 w-full">
+      {/* Main area */}
+      <main className="flex-1 flex flex-col min-h-0">
         {selectedUser ? (
           <>
             <ChatHeader
               user={selectedUser}
               onBack={() => setIsSidebarOpen(true)}
               onLogout={() => setIsModalOpen(true)}
-              className="z-20"
+              className="z-30"
             />
             <ChatWindow
               messages={messages}
@@ -262,8 +275,8 @@ export default function DMPage() {
           </>
         ) : (
           <>
-            {/* Mobile Top Bar when no chat is selected */}
-            <div className="sm:hidden flex items-center justify-between p-4 border-b bg-white shadow-sm z-20">
+            {/* Mobile top bar when none selected */}
+            <div className="sm:hidden flex items-center justify-between p-4 border-b bg-white shadow-sm z-30">
               <h2 className="font-semibold text-gray-800 text-lg">Chats</h2>
               <button
                 onClick={() => setIsModalOpen(true)}
@@ -274,20 +287,20 @@ export default function DMPage() {
             </div>
 
             {/* Placeholder */}
-            <div className="flex flex-col items-center justify-center flex-1 text-gray-600 px-4 text-center w-full">
+            <div className="flex-1 flex flex-col items-center justify-center text-gray-600 px-4 text-center">
               <h2 className="text-lg font-semibold mb-2">
                 Select a chat to start messaging
               </h2>
               <button
                 onClick={() => setIsSidebarOpen(true)}
-                className="sm:hidden mt-4 bg-blue-500 text-white px-4 py-2 rounded-full"
+                className="sm:hidden mt-2 bg-blue-500 text-white min-w-0 px-2 py-2 rounded-full"
               >
                 Open Chats
               </button>
             </div>
           </>
         )}
-      </div>
+      </main>
 
       {/* Logout Modal */}
       <Modal

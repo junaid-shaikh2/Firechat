@@ -44,8 +44,8 @@ export default function MessageBubble({
         <div
           className={`max-w-[75%] ${msg.text ? "sm:px-4 sm:py-2 px-2 py-[6px] rounded-2xl" : "px-1 pt-1 rounded]"} rounded text-sm shadow-md transition-all duration-200 ${
             isOwn
-              ? `bg-blue-500 text-white rounded-br-none ${hasImage ? "rounded" : ""}`
-              : `bg-white text-gray-800 rounded-bl-none  ${hasImage ? "rounded" : ""}`
+              ? `bg-blue-500 text-white ${hasImage ? "" : "rounded-br-none"} ${hasImage ? "rounded" : ""}`
+              : `bg-white text-gray-800 ${hasImage ? "" : "rounded-bl-none"} ${hasImage ? "rounded" : ""}`
           } break-words`}
         >
           {hasText && <div className="">{msg.text}</div>}

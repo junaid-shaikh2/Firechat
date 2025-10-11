@@ -6,8 +6,8 @@ export interface User {
 
 export interface ChatHeaderProps {
   user: User;
-  onLogout?: () => void; // NEW: optional logout for mobile
-  onBack?: () => void; // NEW: optional back for mobile
+  onLogout?: () => void;
+  onBack?: () => void;
   className?: string;
 }
 
@@ -52,7 +52,6 @@ export interface SidebarProps {
   onSelectUser: (user: User) => void;
   onSearch: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onLogout: () => void;
-  // NEW:
   isOpen?: boolean;
   onClose?: () => void;
   className?: string;
