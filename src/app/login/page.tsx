@@ -24,9 +24,12 @@ export default function AuthPage() {
   const router = useRouter();
   const provider = new GoogleAuthProvider();
 
+  // 🔹 Google Sign-in
   const signInWithGoogle = async () => {
     try {
       setLoading(true);
+      setError("");
+
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
@@ -44,14 +47,22 @@ export default function AuthPage() {
 
         router.push("/chat/dm");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Google sign-in error:", error);
-      setError("Failed to sign in with Google.");
+
+      let message = "Failed to sign in with Google.";
+      if (error.code === "auth/popup-closed-by-user")
+        message = "Sign-in popup was closed before completing.";
+      else if (error.code === "auth/cancelled-popup-request")
+        message = "Another popup is already open. Please try again.";
+
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
+  // 🔹 Email/Password Auth (Login or Signup)
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -76,13 +87,38 @@ export default function AuthPage() {
       }
 
       router.push("/chat/dm");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Authentication error:", error);
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError("An unknown error occurred.");
+
+      let message = "Something went wrong. Please try again.";
+
+      if (error.code) {
+        switch (error.code) {
+          case "auth/invalid-email":
+            message = "Invalid email address.";
+            break;
+          case "auth/missing-password":
+            message = "Please enter your password.";
+            break;
+          case "auth/weak-password":
+            message = "Password must be at least 6 characters long.";
+            break;
+          case "auth/email-already-in-use":
+            message = "An account with this email already exists.";
+            break;
+          case "auth/user-not-found":
+            message = "No user found with this email.";
+            break;
+          case "auth/wrong-password":
+          case "auth/invalid-credential":
+            message = "Incorrect email or password.";
+            break;
+          default:
+            message = error.message || message;
+        }
       }
+
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -90,10 +126,9 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7] relative overflow-hidden px-4">
-      {/* Subtle floating animation */}
       <div className="relative z-10 bg-white p-6 sm:p-8 rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] w-full max-w-sm border border-gray-100 transition-all duration-300 hover:scale-[1.01] hover:shadow-[0_15px_40px_rgba(0,0,0,0.1)]">
         {/* Apple-style top dots */}
-        <div className="flex items-center justify-center  gap-3 mb-4">
+        <div className="flex items-center justify-center gap-3 mb-4">
           <span className="w-3 h-3 rounded-full bg-[#1c1c1c]" />
           <span className="w-3 h-3 rounded-full bg-[#3a3a3a]" />
           <span className="w-3 h-3 rounded-full bg-[#5a5a5a]" />
@@ -193,6 +228,7 @@ export default function AuthPage() {
           </button>
         </form>
 
+        {/* Divider */}
         <div className="mt-6">
           <div className="flex items-center my-4">
             <div className="flex-grow border-t border-gray-300"></div>
@@ -228,8 +264,11 @@ export default function AuthPage() {
           </button>
         </p>
 
+        {/* 🔹 Beautiful error alert */}
         {error && (
-          <p className="text-red-500 text-sm text-center mt-3">{error}</p>
+          <div className="bg-red-50 border border-red-300 text-red-600 text-sm text-center py-2 rounded-lg mt-4 animate-fadeIn">
+            {error}
+          </div>
         )}
       </div>
     </div>
