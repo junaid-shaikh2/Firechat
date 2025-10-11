@@ -12,6 +12,7 @@ import { auth, db } from "../lib/firebase";
 import { setDoc, doc, getDoc } from "firebase/firestore";
 import Image from "next/image";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
+import { FirebaseError } from "firebase/app"; // Import FirebaseError if necessary
 
 export default function AuthPage() {
   const [isSignup, setIsSignup] = useState(false);
@@ -47,14 +48,17 @@ export default function AuthPage() {
 
         router.push("/chat/dm");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Google sign-in error:", error);
-
       let message = "Failed to sign in with Google.";
-      if (error.code === "auth/popup-closed-by-user")
-        message = "Sign-in popup was closed before completing.";
-      else if (error.code === "auth/cancelled-popup-request")
-        message = "Another popup is already open. Please try again.";
+
+      if (error instanceof Error) {
+        if (error.message === "auth/popup-closed-by-user") {
+          message = "Sign-in popup was closed before completing.";
+        } else if (error.message === "auth/cancelled-popup-request") {
+          message = "Another popup is already open. Please try again.";
+        }
+      }
 
       setError(message);
     } finally {
@@ -87,12 +91,12 @@ export default function AuthPage() {
       }
 
       router.push("/chat/dm");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Authentication error:", error);
 
       let message = "Something went wrong. Please try again.";
 
-      if (error.code) {
+      if (error instanceof FirebaseError) {
         switch (error.code) {
           case "auth/invalid-email":
             message = "Invalid email address.";
@@ -116,6 +120,8 @@ export default function AuthPage() {
           default:
             message = error.message || message;
         }
+      } else if (error instanceof Error) {
+        message = error.message || message;
       }
 
       setError(message);
@@ -218,11 +224,7 @@ export default function AuthPage() {
             type="submit"
             disabled={loading}
             className={`w-full py-2.5 rounded-xl text-white font-medium transition-transform duration-200
-            ${
-              loading
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-black hover:bg-gray-800 hover:scale-[1.02]"
-            }`}
+            ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-black hover:bg-gray-800 hover:scale-[1.02]"}`}
           >
             {loading ? "Loading..." : isSignup ? "Sign Up" : "Login"}
           </button>
@@ -236,40 +238,43 @@ export default function AuthPage() {
             <div className="flex-grow border-t border-gray-300"></div>
           </div>
 
+          {/* Google sign-in button */}
           <button
+            type="button"
             onClick={signInWithGoogle}
             disabled={loading}
-            className="flex items-center justify-center gap-3 w-full border border-gray-300 rounded-xl bg-white hover:bg-gray-50 py-2.5 transition-transform hover:scale-[1.02]"
+            className="w-full py-2.5 rounded-xl bg-white border border-gray-300 text-black font-medium hover:bg-gray-100 hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2"
           >
-            <Image
-              src="/google-logo.png"
-              alt="Google Logo"
-              className="w-5 h-5"
-              width={24}
-              height={24}
-            />
-            <span className="text-gray-700 font-medium text-sm sm:text-base">
-              Continue with Google
-            </span>
+            {loading ? (
+              "Loading..."
+            ) : (
+              <>
+                <Image
+                  src="/google-logo.png"
+                  alt="Google Logo"
+                  width={20}
+                  height={20}
+                />
+                Sign in with Google
+              </>
+            )}
           </button>
         </div>
 
-        <p className="text-center text-gray-500 text-[13px] mt-5">
+        {/* Error message */}
+        {error && (
+          <p className="mt-4 text-center text-red-600 text-sm">{error}</p>
+        )}
+
+        <p className="mt-4 text-center text-gray-500 text-sm">
           {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
-          <button
+          <span
             onClick={() => setIsSignup(!isSignup)}
-            className="font-medium text-gray-800 hover:underline hover:underline-offset-4 transition"
+            className="text-blue-600 cursor-pointer"
           >
             {isSignup ? "Login" : "Sign Up"}
-          </button>
+          </span>
         </p>
-
-        {/* 🔹 Beautiful error alert */}
-        {error && (
-          <div className="bg-red-50 border border-red-300 text-red-600 text-sm text-center py-2 rounded-lg mt-4 animate-fadeIn">
-            {error}
-          </div>
-        )}
       </div>
     </div>
   );

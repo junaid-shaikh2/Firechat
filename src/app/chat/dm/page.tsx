@@ -229,6 +229,8 @@ export default function DMPage() {
 
   return (
     // use 100dvh to avoid mobile vh/keyboard quirks
+    // this 100 dvh means that the height is always 100% of the viewport height,
+    // even when the mobile browser UI (address bar, etc.) shows/hides
     <div className="flex flex-col sm:flex-row h-screen w-full overflow-hidden bg-[#E5E5EA]">
       {/* Overlay behind sidebar on mobile */}
       {isSidebarOpen && (
