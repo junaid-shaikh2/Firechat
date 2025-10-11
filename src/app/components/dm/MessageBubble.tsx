@@ -42,7 +42,7 @@ export default function MessageBubble({
 
       <div className={`flex ${isOwn ? "justify-end" : "justify-start"}`}>
         <div
-          className={`max-w-[75%] ${msg.text ? "sm:px-4 sm:py-2 px-2 py-[6px] rounded-2xl" : "px-1 pt-1 rounded]"} rounded text-sm shadow-md transition-all duration-200 ${
+          className={`max-w-[75%] ${msg.text ? "sm:px-4 sm:py-2 px-2 py-[6px]  rounded-2xl" : "px-1 pt-1 rounded]"} rounded text-sm shadow-md transition-all duration-200 ${
             isOwn
               ? `bg-blue-500 text-white ${hasImage ? "" : "rounded-br-none"} ${hasImage ? "rounded" : ""}`
               : `bg-white text-gray-800 ${hasImage ? "" : "rounded-bl-none"} ${hasImage ? "rounded" : ""}`
@@ -66,7 +66,7 @@ export default function MessageBubble({
 
           {time && (
             <div
-              className={`text-[10px] mt-1 opacity-70 ${
+              className={`text-[9px] mt-0.5 opacity-70 ${
                 isOwn ? "text-right" : "text-left"
               }`}
             >
