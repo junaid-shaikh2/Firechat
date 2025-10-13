@@ -55,7 +55,7 @@ export default function ChatHeader({
         </button>
 
         {menuOpen && (
-          <div className="absolute right-0 top-10 bg-white shadow-lg rounded-lg w-36 border z-50">
+          <div className=" cursor-pointer absolute right-0 top-10 bg-white shadow-lg rounded-lg w-36 border z-50">
             <button
               onClick={() => {
                 setMenuOpen(false);
@@ -71,7 +71,7 @@ export default function ChatHeader({
                 setMenuOpen(false);
                 onLogout?.();
               }}
-              className="flex text-gray-800 font items-center gap-2 px-3 py-2 hover:bg-gray-100 w-full"
+              className="flex cursor-pointer text-gray-800 font items-center gap-2 px-3 py-2 hover:bg-gray-100 w-full"
             >
               Logout
             </button>
