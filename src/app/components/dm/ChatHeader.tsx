@@ -2,14 +2,18 @@
 "use client";
 import { ChatHeaderProps } from "@/app/types/interface";
 import Image from "next/image";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, MoreVertical, Trash2 } from "lucide-react";
+import { useState } from "react";
 
 export default function ChatHeader({
   user,
   onBack,
   onLogout,
+  onDeleteChat,
   className = "",
-}: ChatHeaderProps) {
+}: ChatHeaderProps & { onDeleteChat?: () => void }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <div
       className={`p-3 sm:p-4 border-b bg-white flex items-center justify-between gap-3 shadow-sm ${className}`}
@@ -40,14 +44,39 @@ export default function ChatHeader({
         </span>
       </div>
 
-      {/* Right: logout (mobile-only) */}
-      <div className="flex items-center">
+      {/* Right: options */}
+      <div className="flex items-center gap-2 relative">
         <button
-          onClick={onLogout}
-          className="sm:hidden bg-gray-700 text-white text-sm px-3 py-1 rounded-full hover:bg-gray-900"
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="p-2 rounded-full hover:bg-gray-100"
+          aria-label="Options"
         >
-          Logout
+          <MoreVertical size={20} className="text-gray-700" />
         </button>
+
+        {menuOpen && (
+          <div className="absolute right-0 top-10 bg-white shadow-lg rounded-lg w-36 border z-50">
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                onDeleteChat?.();
+              }}
+              className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 text-red-600 w-full"
+            >
+              <Trash2 size={14} />
+              Delete Chat
+            </button>
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                onLogout?.();
+              }}
+              className="flex text-gray-800 font items-center gap-2 px-3 py-2 hover:bg-gray-100 w-full"
+            >
+              Logout
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

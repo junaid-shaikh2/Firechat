@@ -2,6 +2,8 @@
 import { useState, useEffect, useRef } from "react";
 import { auth, db } from "../../lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
+import { v4 as uuidv4 } from "uuid"; // add at top
+
 import {
   collection,
   onSnapshot,
@@ -32,6 +34,9 @@ export default function DMPage() {
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [selectedMsgIds, setSelectedMsgIds] = useState<string[]>([]);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -107,17 +112,29 @@ export default function DMPage() {
 
   // Send Message
   const sendMessage = async () => {
-    if (!newMessage.trim() || !currentUser || !selectedUser) return;
-    const text = newMessage.trim();
-    setNewMessage("");
+    if ((!newMessage.trim() && !image) || !currentUser || !selectedUser) return;
 
     const conversationId = [currentUser.uid, selectedUser.uid].sort().join("_");
     const convoRef = doc(db, "dmChats", conversationId);
 
+    let imageUrl = null;
+    if (image) {
+      try {
+        imageUrl = await uploadImage(image);
+      } catch (err) {
+        console.error("Image upload failed:", err);
+        return;
+      }
+    }
+
+    setNewMessage("");
+
     const newMsg = {
+      id: uuidv4(), // ✅ assign unique message id
       from: currentUser.uid,
       to: selectedUser.uid,
-      text,
+      text: newMessage.trim() || "",
+      image: imageUrl,
       timestamp: new Date(),
     };
 
@@ -126,23 +143,44 @@ export default function DMPage() {
     if (convoSnap.exists()) {
       await updateDoc(convoRef, {
         messages: arrayUnion(newMsg),
-        lastMessage: newMsg.text,
+        lastMessage: newMsg.text || "📷 Image",
         updatedAt: newMsg.timestamp,
       });
     } else {
       await setDoc(convoRef, {
         participants: [currentUser.uid, selectedUser.uid],
         messages: [newMsg],
-        lastMessage: newMsg.text,
+        lastMessage: newMsg.text || "📷 Image",
         updatedAt: newMsg.timestamp,
       });
     }
 
-    // Scroll to bottom after sending
+    setImage(null);
     setTimeout(
       () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }),
       50
     );
+  };
+
+  // delete messages option
+  const handleDeleteMessages = async (ids: string[]) => {
+    if (!currentUser || !selectedUser) return;
+
+    const conversationId = [currentUser.uid, selectedUser.uid].sort().join("_");
+    const convoRef = doc(db, "dmChats", conversationId);
+    const convoSnap = await getDoc(convoRef);
+    if (!convoSnap.exists()) return;
+
+    const data = convoSnap.data();
+    const updatedMessages = (data.messages as Message[]).filter(
+      (m) => !ids.includes(m.id ?? "")
+    );
+
+    // ✅ update Firestore
+    await updateDoc(convoRef, { messages: updatedMessages });
+
+    // ✅ update UI instantly
+    setMessages(updatedMessages);
   };
 
   // Image Upload
@@ -157,6 +195,7 @@ export default function DMPage() {
           const convoRef = doc(db, "dmChats", conversationId);
 
           const newMsg = {
+            id: uuidv4(), // ✅
             from: currentUser.uid,
             to: selectedUser.uid,
             image: imageUrl,
@@ -227,6 +266,17 @@ export default function DMPage() {
     }
   };
 
+  // Delete entire conversation
+  const handleDeleteChat = async () => {
+    if (!currentUser || !selectedUser) return;
+
+    const conversationId = [currentUser.uid, selectedUser.uid].sort().join("_");
+    const convoRef = doc(db, "dmChats", conversationId);
+    await updateDoc(convoRef, { messages: [] }); // clear all messages
+    setMessages([]);
+    setDeleteConfirmOpen(false);
+  };
+
   return (
     // use 100dvh to avoid mobile vh/keyboard quirks
     // this 100 dvh means that the height is always 100% of the viewport height,
@@ -263,8 +313,10 @@ export default function DMPage() {
               user={selectedUser}
               onBack={() => setIsSidebarOpen(true)}
               onLogout={() => setIsModalOpen(true)}
+              onDeleteChat={() => setDeleteConfirmOpen(true)} // new line
               className="z-30"
             />
+
             <ChatWindow
               messages={messages}
               currentUser={currentUser!}
@@ -273,6 +325,7 @@ export default function DMPage() {
               setNewMessage={setNewMessage}
               onSendMessage={sendMessage}
               messagesEndRef={messagesEndRef}
+              onDeleteMessages={handleDeleteMessages}
             />
           </>
         ) : (
@@ -311,6 +364,16 @@ export default function DMPage() {
         onConfirm={handleLogout}
         title="Confirm Logout"
         message="Are you sure you want to log out?"
+      />
+      {/* Delete Chat Modal */}
+      <Modal
+        isOpen={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={handleDeleteChat}
+        title="Delete Chat"
+        message="Are you sure you want to delete this chat? This cannot be undone."
+        confirmText="Delete"
+        confirmColor="bg-red-600 hover:bg-red-700"
       />
     </div>
   );
