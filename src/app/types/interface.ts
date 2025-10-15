@@ -25,6 +25,7 @@ export interface Message {
   text?: string
   timestamp: Date | { seconds: number; nanoseconds: number }
   image?: string
+  audio?: string
 }
 
 export interface ModalProps {
@@ -44,6 +45,11 @@ export interface ChatWindowProps {
   onSendMessage: () => void
   image: File | null
   messagesEndRef: React.RefObject<HTMLDivElement | null>
+  audioBlob: Blob | null
+  setAudioBlob: (val: Blob | null) => void
+  isRecording: boolean
+  startRecording: () => void
+  stopRecording: () => void
 }
 
 export interface SidebarProps {

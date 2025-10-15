@@ -42,6 +42,11 @@ export default function DMPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
+    null
+  );
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -152,7 +157,12 @@ export default function DMPage() {
 
   // ✅ Send message
   const sendMessage = async () => {
-    if ((!newMessage.trim() && !image) || !currentUser || !selectedUser) return;
+    if (
+      (!newMessage.trim() && !image && !audioBlob) ||
+      !currentUser ||
+      !selectedUser
+    )
+      return;
 
     const conversationId = [currentUser.uid, selectedUser.uid].sort().join("_");
     const convoRef = doc(db, "dmChats", conversationId);
@@ -181,14 +191,42 @@ export default function DMPage() {
       }
     }
 
+    let audioUrl: string | null = null;
+    if (audioBlob) {
+      try {
+        const formData = new FormData();
+        formData.append("file", audioBlob);
+        formData.append("upload_preset", CLOUDINARY_PRESET_NAME);
+        const response = await fetch(
+          `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`,
+          { method: "POST", body: formData }
+        );
+        const data = await response.json();
+        audioUrl = data.secure_url;
+      } catch (err) {
+        console.error("Audio upload failed:", err);
+      }
+    }
+    setAudioBlob(null);
+
     const newMsg = {
       id: uuidv4(),
       from: currentUser.uid,
       to: selectedUser.uid,
       text: newMessage.trim() || "",
       image: imageUrl,
+      audio: audioUrl, // 👈 added
       timestamp: new Date(),
     };
+
+    // const newMsg = {
+    //   id: uuidv4(),
+    //   from: currentUser.uid,
+    //   to: selectedUser.uid,
+    //   text: newMessage.trim() || "",
+    //   image: imageUrl,
+    //   timestamp: new Date(),
+    // };
 
     setNewMessage("");
 
@@ -196,14 +234,15 @@ export default function DMPage() {
     if (convoSnap.exists()) {
       await updateDoc(convoRef, {
         messages: arrayUnion(newMsg),
-        lastMessage: newMsg.text || "📷 Image",
+        // now to add the audio option too in the last message object
+        lastMessage: newMsg.text || (newMsg.image ? "📷 Image" : "🎤 Audio"),
         updatedAt: newMsg.timestamp,
       });
     } else {
       await setDoc(convoRef, {
         participants: [currentUser.uid, selectedUser.uid],
         messages: [newMsg],
-        lastMessage: newMsg.text || "📷 Image",
+        lastMessage: newMsg.text || (newMsg.image ? "📷 Image" : "🎤 Audio"),
         updatedAt: newMsg.timestamp,
       });
     }
@@ -213,6 +252,37 @@ export default function DMPage() {
       () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }),
       50
     );
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      const chunks: BlobPart[] = [];
+
+      recorder.ondataavailable = (e) => chunks.push(e.data);
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: "audio/webm" });
+        setAudioBlob(blob);
+
+        setNewMessage("");
+        stream.getTracks().forEach((track) => track.stop());
+      };
+
+      recorder.start();
+      setMediaRecorder(recorder);
+      setIsRecording(true);
+    } catch (err) {
+      console.error("Mic access denied:", err);
+      alert("Please allow microphone access to record voice.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder) {
+      mediaRecorder.stop();
+      setIsRecording(false);
+    }
   };
 
   // ✅ Delete selected messages
@@ -301,6 +371,11 @@ export default function DMPage() {
               setNewMessage={setNewMessage}
               onSendMessage={sendMessage}
               messagesEndRef={messagesEndRef}
+              audioBlob={audioBlob}
+              setAudioBlob={setAudioBlob}
+              isRecording={isRecording}
+              startRecording={startRecording}
+              stopRecording={stopRecording}
               onDeleteMessages={handleDeleteMessages}
               image={image}
             />

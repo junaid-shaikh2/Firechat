@@ -98,6 +98,14 @@ export default function MessageBubble({
               className="rounded-md m-0.5 border border-gray-300"
             />
           )}
+          {msg.audio && (
+            <audio
+              controls
+              src={msg.audio}
+              className="rounded-md mt-1 w-48 max-w-full"
+            />
+          )}
+
           {time && (
             <div
               className={`text-[9px] mt-0.5 opacity-70 ${

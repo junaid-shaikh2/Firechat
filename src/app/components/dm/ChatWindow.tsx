@@ -1,8 +1,9 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import MessageBubble from "./MessageBubble";
 import type { ChatWindowProps } from "@/app/types/interface";
 import { Trash2 } from "lucide-react";
+import { Mic, Square } from "lucide-react";
 
 export default function ChatWindow({
   currentUser,
@@ -12,8 +13,13 @@ export default function ChatWindow({
   setImage,
   image,
   onSendMessage,
+  isRecording,
+  startRecording,
+  stopRecording,
   messagesEndRef,
   onDeleteMessages,
+  audioBlob,
+  setAudioBlob,
 }: ChatWindowProps & { onDeleteMessages: (ids: string[]) => void }) {
   const [selectedMessages, setSelectedMessages] = useState<string[]>([]);
   const isSelectionMode = selectedMessages.length > 0;
@@ -34,6 +40,7 @@ export default function ChatWindow({
     onDeleteMessages(selectedMessages);
     clearSelection();
   };
+  const inputRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className="flex-1 flex flex-col h-full min-h-0 bg-[#E5E5EA] overflow-hidden">
@@ -118,6 +125,21 @@ export default function ChatWindow({
                 </button>
               </div>
             )}
+            {audioBlob && (
+              <div className="absolute bottom-full left-0 mb-2 bg-white shadow-md rounded-lg p-2 flex items-center gap-2 border">
+                <audio
+                  controls
+                  src={URL.createObjectURL(audioBlob)}
+                  className="w-32"
+                />
+                <button
+                  onClick={() => setAudioBlob(null)}
+                  className="text-red-500 text-xs hover:underline"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
 
             <label
               htmlFor="imageUpload"
@@ -127,19 +149,41 @@ export default function ChatWindow({
             </label>
 
             <input
+              ref={inputRef}
               type="text"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Message"
               className="flex-1 min-w-0 border-none bg-gray-100 rounded-full px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
               onKeyDown={(e) => {
-                if (e.key === "Enter") onSendMessage();
+                if (
+                  e.key === "Enter" &&
+                  (newMessage.trim() || image || audioBlob)
+                ) {
+                  e.preventDefault(); // prevent newline
+                  onSendMessage();
+                }
               }}
             />
+            {isRecording ? (
+              <button
+                onClick={stopRecording}
+                className="bg-red-500 text-white rounded-full w-10 h-10 flex items-center justify-center shadow animate-pulse"
+              >
+                <Square size={18} />
+              </button>
+            ) : (
+              <button
+                onClick={startRecording}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full w-10 h-10 flex items-center justify-center shadow"
+              >
+                <Mic size={18} />
+              </button>
+            )}
 
             <button
               onClick={onSendMessage}
-              disabled={!newMessage.trim() && !image}
+              disabled={!newMessage.trim() && !image && !audioBlob}
               className="bg-blue-500 flex-shrink-0 hover:bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold shadow"
             >
               ↑
