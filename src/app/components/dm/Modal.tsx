@@ -15,7 +15,7 @@ export default function Modal({
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-80 max-w-[90%] p-5 flex flex-col gap-4 animate-fade-in">
+      <div className="bg-white/90 dark:bg-gray-800 rounded-xl shadow-lg w-80 max-w-[90%] p-5 flex flex-col gap-4 animate-fade-in">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           {title}
         </h2>
