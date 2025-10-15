@@ -37,7 +37,7 @@ export default function MessageBubble({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen]);
 
-  // 🕒 Safe timestamp formatting
+  // Format time/date
   const time = msg?.timestamp
     ? new Date(
         "seconds" in msg.timestamp
@@ -116,7 +116,7 @@ export default function MessageBubble({
       )}
 
       <div
-        className={`flex relative items-center gap-2 ${
+        className={`flex items-center gap-2 relative ${
           isOwn ? "justify-end" : "justify-start"
         }`}
         onContextMenu={(e) => {
@@ -125,118 +125,115 @@ export default function MessageBubble({
         }}
         onClick={() => isSelectionMode && onSelect(msg.id!)}
       >
-        {/* ⋮ Menu (on left side) */}
-        {!isSelectionMode && (
-          <div className="relative" ref={menuRef}>
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="p-1 cursor-pointer rounded-full hover:bg-gray-100 text-gray-600 transition"
-              title="Options"
-            >
-              <MoreVertical size={16} />
-            </button>
-
-            {/* Delete popup (to left of dots) */}
-            {menuOpen && (
-              <div className="absolute -left-20 top-1 bg-white border border-gray-200 rounded-lg shadow-lg px-2 py-1 z-50 animate-fade-in">
-                <button
-                  onClick={() => {
-                    onDeleteSingle(msg.id!);
-                    setMenuOpen(false);
-                  }}
-                  className="flex items-center gap-1 text-xs text-red-600 hover:text-red-700 cursor-pointer"
-                >
-                  <Trash2 size={12} />
-                  Delete
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* 💬 Message bubble */}
         <div
-          className={`relative group max-w-[75%] overflow-visible z-20
-            ${
+          className={`relative flex items-center ${
+            isOwn ? "flex-row-reverse" : "flex-row"
+          } gap-1 max-w-[85%]`}
+        >
+          {/* 💬 Message Bubble */}
+          <div
+            className={`relative group break-words shadow-md transition-all duration-200 rounded-2xl text-sm ${
               hasAudio
-                ? "p-3 m-0"
+                ? "p-3"
                 : hasText
                   ? "sm:px-4 sm:py-2 px-2 py-[6px]"
                   : "px-0.5 pt-0.5 pb-0.5"
-            }
-            rounded-2xl text-sm shadow-md transition-all duration-200 break-words
-            ${
+            } ${
               isOwn
                 ? "bg-blue-500 text-white rounded-br-none"
                 : "bg-white text-gray-800 rounded-bl-none"
-            }
-            ${isSelected ? "ring-2 ring-blue-400" : "hover:shadow-lg"}
-          `}
-        >
-          {hasText && <div>{msg.text}</div>}
+            } ${isSelected ? "ring-2 ring-blue-400" : "hover:shadow-lg"}`}
+          >
+            {hasText && <div>{msg.text}</div>}
 
-          {hasImage && (
-            <Image
-              src={msg.image || ""}
-              alt="sent image"
-              width={200}
-              height={200}
-              unoptimized
-              className="rounded-md m-0.5 border border-gray-300"
-            />
-          )}
+            {hasImage && (
+              <Image
+                src={msg.image || ""}
+                alt="sent image"
+                width={200}
+                height={200}
+                unoptimized
+                className="rounded-md m-0.5 border border-gray-300"
+              />
+            )}
 
-          {/* 🎧 Audio Player */}
-          {hasAudio && (
-            <div className="flex items-center gap-3 w-52 max-w-full">
-              <button
-                onClick={togglePlay}
-                className={`p-2 rounded-full ${
-                  isOwn ? "bg-white text-blue-500" : "bg-blue-500 text-white"
-                } shadow hover:scale-105 transition`}
+            {/* 🎧 Audio */}
+            {hasAudio && (
+              <div className="flex items-center gap-3 w-52 max-w-full">
+                <button
+                  onClick={togglePlay}
+                  className={`p-2 rounded-full ${
+                    isOwn ? "bg-white text-blue-500" : "bg-blue-500 text-white"
+                  } shadow hover:scale-105 transition`}
+                >
+                  {isPlaying ? <Pause size={16} /> : <Play size={16} />}
+                </button>
+                <div className="flex-1">
+                  <div className="w-full h-1 bg-gray-300 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-blue-500 transition-all"
+                      style={{ width: `${progress}%` }}
+                    ></div>
+                  </div>
+                  <div className="text-[10px] opacity-70 mt-1">
+                    {formatTime(duration * (progress / 100))} /{" "}
+                    {formatTime(duration)}
+                  </div>
+                </div>
+                <audio ref={audioRef} src={msg.audio} preload="metadata" />
+              </div>
+            )}
+
+            {time && (
+              <div
+                className={`text-[9px] mt-0.5 opacity-70 ${
+                  isOwn ? "text-right" : "text-left"
+                }`}
               >
-                {isPlaying ? <Pause size={16} /> : <Play size={16} />}
+                {time}
+              </div>
+            )}
+          </div>
+
+          {/* ⋮ Menu only for own messages */}
+          {!isSelectionMode && isOwn && (
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="p-1 rounded-full hover:bg-gray-100 text-gray-600 transition"
+              >
+                <MoreVertical size={16} />
               </button>
 
-              <div className="flex-1">
-                <div className="w-full h-1 bg-gray-300 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-blue-500 transition-all"
-                    style={{ width: `${progress}%` }}
-                  ></div>
+              {menuOpen && (
+                <div className="absolute top-1 -left-20 z-50 bg-white border border-gray-200 rounded-lg shadow-lg px-2 py-1 animate-fade-in">
+                  <button
+                    onClick={() => {
+                      onDeleteSingle(msg.id!);
+                      setMenuOpen(false);
+                    }}
+                    className="flex items-center gap-1 text-xs text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 size={12} />
+                    Delete
+                  </button>
                 </div>
-                <div className="text-[10px] opacity-70 mt-1">
-                  {formatTime(duration * (progress / 100))} /{" "}
-                  {formatTime(duration)}
-                </div>
-              </div>
-
-              <audio ref={audioRef} src={msg.audio} preload="metadata" />
-            </div>
-          )}
-
-          {time && (
-            <div
-              className={`text-[9px] mt-0.5 opacity-70 ${
-                isOwn ? "text-right" : "text-left"
-              }`}
-            >
-              {time}
+              )}
             </div>
           )}
         </div>
       </div>
 
-      {/* ✨ Small fade-in animation */}
+      {/* Animation */}
       <style jsx>{`
         @keyframes fadeIn {
           from {
             opacity: 0;
-            transform: translateX(-5px);
+            transform: translateY(-5px);
           }
           to {
             opacity: 1;
-            transform: translateX(0);
+            transform: translateY(0);
           }
         }
         .animate-fade-in {
