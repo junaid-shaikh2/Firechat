@@ -13,7 +13,6 @@ export default function Modal({
   confirmColor = "bg-red-500 hover:bg-red-600",
 }: ModalProps & { confirmText?: string; confirmColor?: string }) {
   if (!isOpen) return null;
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg w-80 max-w-[90%] p-5 flex flex-col gap-4 animate-fade-in">
