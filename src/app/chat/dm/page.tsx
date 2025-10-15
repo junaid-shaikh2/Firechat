@@ -21,13 +21,12 @@ import ChatWindow from "../../components/dm/ChatWindow";
 import Modal from "../../components/dm/Modal";
 import ChatHeader from "../../components/dm/ChatHeader";
 import type { User, Message } from "@/app/types/interface";
-import { nlNL } from "@mui/material/locale";
 
 // ✅ Cloudinary environment variables
 const CLOUDINARY_CLOUD_NAME =
   process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "";
-const CLOUDINARY_PRESET_NAME =
-  process.env.NEXT_PUBLIC_CLOUDINARY_PRESET_NAME || "";
+const CLOUDINARY_UPLOAD_PRESET =
+  process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "";
 
 export default function DMPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -56,7 +55,7 @@ export default function DMPage() {
     }
   }, []);
 
-  // ✅ Auth listener
+  // Auth listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user)
@@ -69,7 +68,7 @@ export default function DMPage() {
     return () => unsubscribe();
   }, []);
 
-  // ✅ Load users except current
+  // Load users except current
   useEffect(() => {
     if (!currentUser) return;
     const unsubscribe = onSnapshot(collection(db, "users"), (snapshot) => {
@@ -81,7 +80,7 @@ export default function DMPage() {
     return () => unsubscribe();
   }, [currentUser]);
 
-  // ✅ Load messages
+  // Load messages
   useEffect(() => {
     if (!currentUser || !selectedUser) return;
     const conversationId = [currentUser.uid, selectedUser.uid].sort().join("_");
@@ -98,7 +97,7 @@ export default function DMPage() {
     return () => unsubscribe();
   }, [currentUser, selectedUser]);
 
-  // ✅ Search users
+  // Search users
   const searchUser = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.trim().toLowerCase();
     setSearchTerm(e.target.value);
@@ -113,7 +112,6 @@ export default function DMPage() {
     );
   };
 
-  // ✅ Select a chat
   const handleSelectUser = (user: User) => {
     setSelectedUser(user);
     if (typeof window !== "undefined" && window.innerWidth < 640) {
@@ -125,30 +123,25 @@ export default function DMPage() {
     );
   };
 
-  // ✅ Upload Image to Cloudinary
-  const uploadImage = async (file: File) => {
-    console.log("Uploading image to Cloudinary...");
-    if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_PRESET_NAME) {
+  // ✅ Upload file to Cloudinary
+  const uploadToCloudinary = async (file: File | Blob) => {
+    if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
       throw new Error("Cloudinary environment variables are missing!");
     }
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("upload_preset", CLOUDINARY_PRESET_NAME);
+    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
 
     const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-      {
-        method: "POST",
-        body: formData,
-      }
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`,
+      { method: "POST", body: formData }
     );
 
     if (!response.ok) {
-      console.error("Cloudinary upload failed:", await response.text());
-      throw new Error("Image upload failed");
-    } else {
-      console.log("Image uploaded successfully");
+      const errText = await response.text();
+      console.error("Cloudinary upload failed:", errText);
+      throw new Error("Upload failed: " + errText);
     }
 
     const data = await response.json();
@@ -169,24 +162,11 @@ export default function DMPage() {
 
     let imageUrl: string | null = null;
     if (image) {
-      const isImage = image.type?.startsWith("image/");
-      const under10MB = image.size <= 10 * 1024 * 1024;
-      if (!isImage || !under10MB) {
-        alert(
-          !isImage
-            ? "Please select a valid image file."
-            : "Image is too large (max 10MB)."
-        );
-        setImage(image as unknown as File);
-        return;
-      }
       try {
-        imageUrl = await uploadImage(image);
+        imageUrl = await uploadToCloudinary(image);
       } catch (err) {
-        console.error("Image upload failed:", err);
-        alert(
-          "Image upload failed. Check your Cloudinary cloud name and preset, and ensure the preset is unsigned."
-        );
+        console.error("Image upload error:", err);
+        alert("Image upload failed. Check Cloudinary credentials and preset.");
         return;
       }
     }
@@ -194,66 +174,55 @@ export default function DMPage() {
     let audioUrl: string | null = null;
     if (audioBlob) {
       try {
-        const formData = new FormData();
-        formData.append("file", audioBlob);
-        formData.append("upload_preset", CLOUDINARY_PRESET_NAME);
-        const response = await fetch(
-          `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`,
-          { method: "POST", body: formData }
-        );
-        const data = await response.json();
-        audioUrl = data.secure_url;
+        audioUrl = await uploadToCloudinary(audioBlob);
       } catch (err) {
-        console.error("Audio upload failed:", err);
+        console.error("Audio upload error:", err);
+        alert("Audio upload failed. Check Cloudinary credentials and preset.");
+        return;
       }
+      setAudioBlob(null);
     }
-    setAudioBlob(null);
 
-    const newMsg = {
+    const newMsg: any = {
       id: uuidv4(),
       from: currentUser.uid,
       to: selectedUser.uid,
       text: newMessage.trim() || "",
-      image: imageUrl,
-      audio: audioUrl, // 👈 added
       timestamp: new Date(),
     };
 
-    // const newMsg = {
-    //   id: uuidv4(),
-    //   from: currentUser.uid,
-    //   to: selectedUser.uid,
-    //   text: newMessage.trim() || "",
-    //   image: imageUrl,
-    //   timestamp: new Date(),
-    // };
+    if (imageUrl) newMsg.image = imageUrl;
+    if (audioUrl) newMsg.audio = audioUrl;
 
     setNewMessage("");
+    setImage(null);
 
     const convoSnap = await getDoc(convoRef);
+    const lastMessage =
+      newMsg.text || newMsg.image ? "📷 Image" : newMsg.audio ? "🎤 Audio" : "";
+
     if (convoSnap.exists()) {
       await updateDoc(convoRef, {
         messages: arrayUnion(newMsg),
-        // now to add the audio option too in the last message object
-        lastMessage: newMsg.text || (newMsg.image ? "📷 Image" : "🎤 Audio"),
+        lastMessage,
         updatedAt: newMsg.timestamp,
       });
     } else {
       await setDoc(convoRef, {
         participants: [currentUser.uid, selectedUser.uid],
         messages: [newMsg],
-        lastMessage: newMsg.text || (newMsg.image ? "📷 Image" : "🎤 Audio"),
+        lastMessage,
         updatedAt: newMsg.timestamp,
       });
     }
 
-    setImage(null);
     setTimeout(
       () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }),
       50
     );
   };
 
+  // ✅ Recording
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -264,7 +233,6 @@ export default function DMPage() {
       recorder.onstop = () => {
         const blob = new Blob(chunks, { type: "audio/webm" });
         setAudioBlob(blob);
-
         setNewMessage("");
         stream.getTracks().forEach((track) => track.stop());
       };
@@ -288,7 +256,6 @@ export default function DMPage() {
   // ✅ Delete selected messages
   const handleDeleteMessages = async (ids: string[]) => {
     if (!currentUser || !selectedUser) return;
-
     const conversationId = [currentUser.uid, selectedUser.uid].sort().join("_");
     const convoRef = doc(db, "dmChats", conversationId);
     const convoSnap = await getDoc(convoRef);
@@ -329,7 +296,6 @@ export default function DMPage() {
 
   return (
     <div className="flex flex-col sm:flex-row h-screen w-full overflow-hidden bg-[#E5E5EA]">
-      {/* Overlay behind sidebar (mobile) */}
       {isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black/30 z-20 sm:hidden"
@@ -338,7 +304,6 @@ export default function DMPage() {
         />
       )}
 
-      {/* Sidebar */}
       <Sidebar
         users={users}
         filteredUsers={filteredUsers}
@@ -352,7 +317,6 @@ export default function DMPage() {
         className="z-30"
       />
 
-      {/* Chat area */}
       <main className="flex-1 flex flex-col min-h-0">
         {selectedUser ? (
           <>
@@ -381,33 +345,20 @@ export default function DMPage() {
             />
           </>
         ) : (
-          <>
-            <div className="sm:hidden flex items-center justify-between p-4 border-b bg-white shadow-sm z-30">
-              <h2 className="font-semibold text-gray-800 text-lg">Chats</h2>
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="bg-gray-700 cursor-pointer text-white text-sm px-3 py-1 rounded-full hover:bg-gray-900"
-              >
-                Logout
-              </button>
-            </div>
-
-            <div className="flex-1 flex flex-col items-center justify-center text-gray-600 px-4 text-center">
-              <h2 className="text-lg font-semibold mb-2">
-                Select a chat to start messaging
-              </h2>
-              <button
-                onClick={() => setIsSidebarOpen(true)}
-                className="sm:hidden mt-2 bg-blue-500 text-white px-3 py-2 rounded-full"
-              >
-                Open Chats
-              </button>
-            </div>
-          </>
+          <div className="flex-1 flex flex-col items-center justify-center text-gray-600 px-4 text-center">
+            <h2 className="text-lg font-semibold mb-2">
+              Select a chat to start messaging
+            </h2>
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="sm:hidden mt-2 bg-blue-500 text-white px-3 py-2 rounded-full"
+            >
+              Open Chats
+            </button>
+          </div>
         )}
       </main>
 
-      {/* Modals */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
