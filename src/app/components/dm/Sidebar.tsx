@@ -28,9 +28,7 @@ export default function Sidebar({
         "w-[85vw] max-w-xs sm:max-w-none",
         className,
       ].join(" ")}
-      aria-hidden={
-        !isOpen && typeof window !== "undefined" && window.innerWidth < 640
-      }
+      aria-hidden={false}
     >
       {/* Mobile header (close) */}
       <div className="sm:hidden mb-3 flex items-center justify-between">

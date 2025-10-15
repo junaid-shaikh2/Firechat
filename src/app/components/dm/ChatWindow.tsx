@@ -62,6 +62,21 @@ export default function ChatWindow({
         </div>
       )}
 
+      {/* <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className={`p-1 rounded-full transition-colors text-black
+                ${menuOpen ? "bg-gray-400 hover:bg-gray-300 text-gray-700" : ""}
+              `}
+              title="Options"
+              //  ${
+              //     isOwn
+              //       ? "bg-blue-500 hover:bg-blue-600 text-black-100"
+              //       : "bg-gray-200 hover:bg-gray-300 text-gray-700"
+              //   }
+            >
+              <MoreVertical size={14} />
+            </button> */}
+
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2 overscroll-contain">
         {messages.map((msg, index) => {
