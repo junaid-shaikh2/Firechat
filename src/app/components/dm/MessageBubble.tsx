@@ -66,7 +66,7 @@ export default function MessageBubble({
   const hasImage = !!msg.image;
   const hasAudio = !!msg.audio;
 
-  // 🎧 Audio controls
+  //  Audio controls
   const togglePlay = () => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -110,7 +110,6 @@ export default function MessageBubble({
 
   return (
     <>
-      {/* 📅 Date */}
       {showDate && (
         <div className="text-center text-[10px] text-gray-500 my-1">{date}</div>
       )}
@@ -130,7 +129,6 @@ export default function MessageBubble({
             isOwn ? "flex-row-reverse" : "flex-row"
           } gap-1 max-w-[85%]`}
         >
-          {/* 💬 Message Bubble */}
           <div
             className={`relative group break-words shadow-md transition-all duration-200 rounded-2xl text-sm ${
               hasAudio
@@ -157,7 +155,6 @@ export default function MessageBubble({
               />
             )}
 
-            {/* 🎧 Audio */}
             {hasAudio && (
               <div className="flex items-center gap-3 w-52 max-w-full">
                 <button
@@ -224,7 +221,6 @@ export default function MessageBubble({
         </div>
       </div>
 
-      {/* Animation */}
       <style jsx>{`
         @keyframes fadeIn {
           from {

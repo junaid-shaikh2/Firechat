@@ -44,7 +44,6 @@ export default function ChatWindow({
 
   return (
     <div className="flex-1 flex flex-col h-full min-h-0 bg-[#E5E5EA] overflow-hidden">
-      {/* Header for selection mode */}
       {isSelectionMode && (
         <div className="flex items-center justify-between bg-blue-500 text-white px-4 py-2 shadow-sm">
           <span>{selectedMessages.length} selected</span>
@@ -62,22 +61,6 @@ export default function ChatWindow({
         </div>
       )}
 
-      {/* <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className={`p-1 rounded-full transition-colors text-black
-                ${menuOpen ? "bg-gray-400 hover:bg-gray-300 text-gray-700" : ""}
-              `}
-              title="Options"
-              //  ${
-              //     isOwn
-              //       ? "bg-blue-500 hover:bg-blue-600 text-black-100"
-              //       : "bg-gray-200 hover:bg-gray-300 text-gray-700"
-              //   }
-            >
-              <MoreVertical size={14} />
-            </button> */}
-
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2 overscroll-contain">
         {messages.map((msg, index) => {
           const isOwn = msg.from === currentUser?.uid;
@@ -103,7 +86,6 @@ export default function ChatWindow({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
       {!isSelectionMode && (
         <div className="relative p-3 border-t bg-white">
           <div className="flex items-center gap-2 w-full">
@@ -175,7 +157,7 @@ export default function ChatWindow({
                   e.key === "Enter" &&
                   (newMessage.trim() || image || audioBlob)
                 ) {
-                  e.preventDefault(); // prevent newline
+                  e.preventDefault();
                   onSendMessage();
                 }
               }}

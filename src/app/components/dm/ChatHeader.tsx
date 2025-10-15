@@ -19,7 +19,6 @@ export default function ChatHeader({
       className={`p-3 sm:p-4 border-b bg-white flex items-center justify-between gap-3 shadow-sm ${className}`}
       role="banner"
     >
-      {/* Left: back + name */}
       <div className="flex items-center gap-3 min-w-0">
         <button
           onClick={onBack}
@@ -44,7 +43,6 @@ export default function ChatHeader({
         </span>
       </div>
 
-      {/* Right: options */}
       <div className="flex items-center gap-2 relative">
         <button
           onClick={() => setMenuOpen(!menuOpen)}

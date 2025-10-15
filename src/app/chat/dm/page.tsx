@@ -22,7 +22,6 @@ import Modal from "../../components/dm/Modal";
 import ChatHeader from "../../components/dm/ChatHeader";
 import type { User, Message } from "@/app/types/interface";
 
-// ✅ Cloudinary environment variables
 const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
 const CLOUDINARY_UPLOAD_PRESET =
   process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
@@ -122,7 +121,6 @@ export default function DMPage() {
     );
   };
 
-  // ✅ Upload file to Cloudinary
   const uploadToCloudinary = async (file: File | Blob) => {
     if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
       throw new Error("Cloudinary environment variables are missing!");
@@ -147,7 +145,6 @@ export default function DMPage() {
     return data.secure_url as string;
   };
 
-  // ✅ Send message
   const sendMessage = async () => {
     if (
       (!newMessage.trim() && !image && !audioBlob) ||
@@ -198,7 +195,7 @@ export default function DMPage() {
 
     const convoSnap = await getDoc(convoRef);
     const lastMessage =
-      newMsg.text || newMsg.image ? "📷 Image" : newMsg.audio ? "🎤 Audio" : "";
+      newMsg.text || newMsg.image ? "Image" : newMsg.audio ? "Audio" : "";
 
     if (convoSnap.exists()) {
       await updateDoc(convoRef, {
@@ -221,7 +218,6 @@ export default function DMPage() {
     );
   };
 
-  // ✅ Recording
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -252,7 +248,6 @@ export default function DMPage() {
     }
   };
 
-  // ✅ Delete selected messages
   const handleDeleteMessages = async (ids: string[]) => {
     if (!currentUser || !selectedUser) return;
     const conversationId = [currentUser.uid, selectedUser.uid].sort().join("_");
@@ -269,7 +264,6 @@ export default function DMPage() {
     setMessages(updatedMessages);
   };
 
-  // ✅ Delete entire conversation
   const handleDeleteChat = async () => {
     if (!currentUser || !selectedUser) return;
     const conversationId = [currentUser.uid, selectedUser.uid].sort().join("_");
@@ -279,7 +273,6 @@ export default function DMPage() {
     setDeleteConfirmOpen(false);
   };
 
-  // ✅ Logout
   const handleLogout = async () => {
     setIsModalOpen(false);
     try {

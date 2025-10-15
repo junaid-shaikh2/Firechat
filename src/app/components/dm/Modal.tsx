@@ -1,4 +1,3 @@
-// Modal.tsx
 "use client";
 import React from "react";
 import { ModalProps } from "@/app/types/interface";
