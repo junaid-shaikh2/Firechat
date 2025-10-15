@@ -182,7 +182,7 @@ export default function DMPage() {
       setAudioBlob(null);
     }
 
-    const newMsg: any = {
+    const newMsg: Message = {
       id: uuidv4(),
       from: currentUser.uid,
       to: selectedUser.uid,
