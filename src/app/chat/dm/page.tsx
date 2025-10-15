@@ -23,10 +23,9 @@ import ChatHeader from "../../components/dm/ChatHeader";
 import type { User, Message } from "@/app/types/interface";
 
 // ✅ Cloudinary environment variables
-const CLOUDINARY_CLOUD_NAME =
-  process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || "";
+const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
 const CLOUDINARY_UPLOAD_PRESET =
-  process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "";
+  process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!;
 
 export default function DMPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
