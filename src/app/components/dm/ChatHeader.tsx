@@ -3,7 +3,7 @@
 import { ChatHeaderProps } from "@/app/types/interface";
 import Image from "next/image";
 import { ChevronLeft, MoreVertical, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 export default function ChatHeader({
   user,
@@ -48,7 +48,7 @@ export default function ChatHeader({
       <div className="flex items-center gap-2 relative">
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="p-2 rounded-full hover:bg-gray-100"
+          className="p-2 rounded-full cursor-pointer hover:bg-gray-100"
           aria-label="Options"
         >
           <MoreVertical size={20} className="text-gray-700" />

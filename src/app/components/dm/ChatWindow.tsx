@@ -1,7 +1,7 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import MessageBubble from "./MessageBubble";
-import { ChatWindowProps } from "@/app/types/interface";
+import type { ChatWindowProps } from "@/app/types/interface";
 import { Trash2 } from "lucide-react";
 
 export default function ChatWindow({
@@ -10,6 +10,7 @@ export default function ChatWindow({
   newMessage,
   setNewMessage,
   setImage,
+  image,
   onSendMessage,
   messagesEndRef,
   onDeleteMessages,
@@ -55,7 +56,7 @@ export default function ChatWindow({
       )}
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2 overscroll-contain">
+      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2 overscroll-contain">
         {messages.map((msg, index) => {
           const isOwn = msg.from === currentUser?.uid;
           const msgDate = msg.timestamp
@@ -83,7 +84,7 @@ export default function ChatWindow({
       {/* Input */}
       {!isSelectionMode && (
         <div className="relative p-3 border-t bg-white">
-          <div className="relative w-full flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full">
             <input
               type="file"
               id="imageUpload"
@@ -91,11 +92,32 @@ export default function ChatWindow({
               className="hidden"
               onChange={(e) => {
                 if (e.target.files && e.target.files[0]) {
-                  setImage(e.target.files[0]);
+                  const file = e.target.files[0];
+                  setImage(file);
                   e.target.value = "";
+                } else {
+                  setImage(null);
                 }
               }}
             />
+            {image && (
+              <div className="absolute bottom-full left-0 mb-2 bg-white shadow-md rounded-lg p-2 flex items-center gap-2 border">
+                <img
+                  src={URL.createObjectURL(image)}
+                  alt="preview"
+                  className="w-10 h-10 object-cover rounded"
+                />
+                <span className="text-sm text-gray-700 truncate max-w-[120px]">
+                  {image.name}
+                </span>
+                <button
+                  onClick={() => setImage(null)}
+                  className="text-red-500 text-xs ml-2 hover:underline"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
 
             <label
               htmlFor="imageUpload"
@@ -109,7 +131,7 @@ export default function ChatWindow({
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Message"
-              className="flex-1 border-none bg-gray-100 rounded-full px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="flex-1 min-w-0 border-none bg-gray-100 rounded-full px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
               onKeyDown={(e) => {
                 if (e.key === "Enter") onSendMessage();
               }}
@@ -117,7 +139,7 @@ export default function ChatWindow({
 
             <button
               onClick={onSendMessage}
-              disabled={!newMessage.trim()}
+              disabled={!newMessage.trim() && !image}
               className="bg-blue-500 flex-shrink-0 hover:bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold shadow"
             >
               ↑

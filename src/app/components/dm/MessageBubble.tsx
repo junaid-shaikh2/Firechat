@@ -1,6 +1,6 @@
 "use client";
-import React, { useState } from "react";
-import { MessageBubbleProps } from "@/app/types/interface";
+import { useState, useRef, useEffect } from "react";
+import type { MessageBubbleProps } from "@/app/types/interface";
 import Image from "next/image";
 import { MoreVertical, Trash2 } from "lucide-react";
 
@@ -19,6 +19,18 @@ export default function MessageBubble({
   onDeleteSingle: (msgId: string) => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null); //
+
+  // 👇 added click outside listener
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    if (menuOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [menuOpen]);
 
   const time = msg.timestamp
     ? new Date(
@@ -63,17 +75,17 @@ export default function MessageBubble({
       >
         <div
           className={`relative group max-w-[75%] ${
-            msg.text ? "sm:px-4 sm:py-2 px-2 py-[6px]" : "px-1 pt-1"
+            msg.text ? "sm:px-4 sm:py-2 px-2 py-[6px]" : "px-0.5 pt-0.5 pb-0.5"
           } rounded-2xl text-sm shadow-md transition-all duration-200 break-words
          ${
            isOwn
-             ? `bg-blue-500 text-white ${hasImage ? "" : "rounded-br-none"} ${hasImage ? "rounded-md" : ""}`
-             : `bg-white text-gray-800 ${hasImage ? "" : "rounded-bl-none"} ${hasImage ? "rounded-md" : ""}`
-         } ${
-           isSelected
-             ? "ring-2 ring-blue-400 scale-[0.98]"
-             : "hover:scale-[1.01]"
-         }`}
+             ? `bg-blue-500 text-white ${hasImage ? "" : "rounded-br-none"} ${
+                 hasImage ? "rounded-md" : ""
+               }`
+             : `bg-white text-gray-800 ${hasImage ? "" : "rounded-bl-none"} ${
+                 hasImage ? "rounded-md" : ""
+               }`
+         } ${isSelected ? "ring-2 ring-blue-400 scale-[0.98]" : "hover:scale-[1.01]"}`}
         >
           {hasText && <div>{msg.text}</div>}
           {hasImage && (
@@ -82,7 +94,8 @@ export default function MessageBubble({
               alt="sent image"
               width={200}
               height={200}
-              className="rounded-md m-0.2 border border-gray-300"
+              unoptimized
+              className="rounded-md m-0.5 border border-gray-300"
             />
           )}
           {time && (
@@ -95,15 +108,16 @@ export default function MessageBubble({
             </div>
           )}
 
-          {/* 3-dots menu for PC */}
+          {/* Menu wrapper with ref */}
           {isOwn && !isSelectionMode && (
-            <div className="absolute top-0 right-0">
+            <div className="absolute top-0 right-0" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                className="opacity-0 cursor-pointer group-hover:opacity-100 transition-opacity p-1"
               >
                 <MoreVertical size={14} />
               </button>
+
               {menuOpen && (
                 <div className="absolute right-0 mt-1 bg-white shadow-md rounded-md text-gray-800 text-sm z-50">
                   <button

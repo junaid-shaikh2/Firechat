@@ -1,58 +1,60 @@
+import type React from "react"
 export interface User {
-  uid: string;
-  name?: string;
-  email?: string;
+  uid: string
+  name?: string
+  email?: string
 }
 
 export interface ChatHeaderProps {
-  user: User;
-  onLogout?: () => void;
-  onBack?: () => void;
-  className?: string;
+  user: User
+  onLogout?: () => void
+  onBack?: () => void
+  className?: string
 }
 
 export interface MessageBubbleProps {
-  msg: Message;
-  isOwn: boolean;
-  showDate?: boolean;
+  msg: Message
+  isOwn: boolean
+  showDate?: boolean
 }
 
 export interface Message {
-  id?: string;
-  from: string;
-  to: string;
-  text?: string;
-  timestamp: Date | { seconds: number; nanoseconds: number };
-  image?: string;
+  id?: string
+  from: string
+  to: string
+  text?: string
+  timestamp: Date | { seconds: number; nanoseconds: number }
+  image?: string
 }
 
 export interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  title: string;
-  message: string;
+  isOpen: boolean
+  onClose: () => void
+  onConfirm: () => void
+  title: string
+  message: string
 }
 
 export interface ChatWindowProps {
-  currentUser: User;
-  messages: Message[];
-  newMessage: string;
-  setNewMessage: (val: string) => void;
-  setImage: (val: File | null) => void;
-  onSendMessage: () => void;
-  messagesEndRef: React.RefObject<HTMLDivElement | null>;
+  currentUser: User
+  messages: Message[]
+  newMessage: string
+  setNewMessage: (val: string) => void
+  setImage: (val: File | null) => void
+  onSendMessage: () => void
+  image: File | null
+  messagesEndRef: React.RefObject<HTMLDivElement | null>
 }
 
 export interface SidebarProps {
-  users: User[];
-  filteredUsers: User[];
-  searchTerm: string;
-  selectedUser: User | null;
-  onSelectUser: (user: User) => void;
-  onSearch: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onLogout: () => void;
-  isOpen?: boolean;
-  onClose?: () => void;
-  className?: string;
+  users: User[]
+  filteredUsers: User[]
+  searchTerm: string
+  selectedUser: User | null
+  onSelectUser: (user: User) => void
+  onSearch: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onLogout: () => void
+  isOpen?: boolean
+  onClose?: () => void
+  className?: string
 }

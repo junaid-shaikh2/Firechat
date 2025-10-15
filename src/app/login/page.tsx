@@ -213,7 +213,7 @@ export default function AuthPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-lg"
+                className="absolute cursor-pointer right-3 top-1/2 -translate-y-1/2 text-gray-500 text-lg"
               >
                 {showPassword ? <AiFillEyeInvisible /> : <AiFillEye />}
               </button>
@@ -223,7 +223,7 @@ export default function AuthPage() {
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-2.5 rounded-xl text-white font-medium transition-transform duration-200
+            className={`w-full py-2.5 rounded-xl cursor-pointer text-white font-medium transition-transform duration-200
             ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-black hover:bg-gray-800 hover:scale-[1.02]"}`}
           >
             {loading ? "Loading..." : isSignup ? "Sign Up" : "Login"}
@@ -243,12 +243,16 @@ export default function AuthPage() {
             type="button"
             onClick={signInWithGoogle}
             disabled={loading}
-            className="w-full py-2.5 rounded-xl bg-white border border-gray-300 text-black font-medium hover:bg-gray-100 hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2"
+            className="w-full py-2.5 cursor-pointer rounded-xl bg-white border border-gray-300 text-black font-medium hover:bg-gray-100 hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2"
           >
             {loading ? (
               "Loading..."
             ) : (
               <>
+                <div
+                  className="cursor-pointer"
+                  onClick={signInWithGoogle}
+                ></div>
                 <Image
                   src="/google-logo.png"
                   alt="Google Logo"
