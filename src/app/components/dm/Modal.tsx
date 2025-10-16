@@ -28,7 +28,7 @@ export default function Modal({
         <div className="flex flex-wrap justify-center sm:justify-end gap-3  mt-3 w-auto mx-5 sm:w-auto">
           <button
             onClick={onClose}
-            className="px-3 py-1.5 text-sm rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition w-full sm:w-auto"
+            className="px-3 py-1.5 text-sm rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition w-full sm:w-auto cursor-pointer"
           >
             Cancel
           </button>

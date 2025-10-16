@@ -162,13 +162,12 @@ export default function MessageBubble({
               <div className="flex  items-center gap-2 sm:w-40">
                 <button
                   onClick={togglePlay}
-                  className={`p-1 rounded-full ${
+                  className={`p-1 cursor-pointer rounded-full ${
                     isOwn ? "bg-white text-blue-500" : "bg-blue-500 text-white"
                   } shadow hover:scale-105 transition`}
                 >
                   {isPlaying ? <Pause size={16} /> : <Play size={16} />}
                 </button>
-                {/* making the vm shrink with the screen size  */}
 
                 <div className="flex-1">
                   <div className="w-full flex-1 h-1 bg-gray-300 rounded-full overflow-hidden">
@@ -202,7 +201,7 @@ export default function MessageBubble({
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="p-0.5 rounded-full hover:bg-gray-100 text-gray-600 transition"
+                className="p-0.5 rounded-full hover:bg-gray-100 text-gray-600 transition cursor-pointer"
               >
                 <MoreVertical size={16} />
               </button>
@@ -214,7 +213,7 @@ export default function MessageBubble({
                       onDeleteSingle(msg.id!);
                       setMenuOpen(false);
                     }}
-                    className="flex items-center gap-0.5 text-xs text-red-600 hover:text-red-700"
+                    className="flex cursor-pointer items-center gap-0.5 text-xs text-red-600 hover:text-red-700"
                   >
                     <Trash2 size={12} />
                     Delete
