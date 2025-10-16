@@ -30,7 +30,6 @@ export default function Sidebar({
       ].join(" ")}
       aria-hidden={false}
     >
-      {/* Mobile header (close) */}
       <div className="sm:hidden mb-3 flex items-center justify-between">
         <h2 className="font-semibold text-gray-800 text-md sm:text-large">
           Direct Messages
@@ -45,12 +44,10 @@ export default function Sidebar({
         </button>
       </div>
 
-      {/* Desktop title */}
       <h2 className="hidden sm:block font-semibold mb-3 text-gray-800 text-lg">
         Direct Messages
       </h2>
 
-      {/* Search */}
       <div className="mb-3">
         <input
           type="text"
@@ -62,7 +59,6 @@ export default function Sidebar({
         />
       </div>
 
-      {/* Users list */}
       <div className="flex-1 min-h-0 overflow-y-auto space-y-1 overscroll-contain">
         {list.map((user) => (
           <div
@@ -81,7 +77,6 @@ export default function Sidebar({
         ))}
       </div>
 
-      {/* Logout (visible both mobile & desktop) */}
       <div className="mt-4 flex flex-col gap-2 shrink-0">
         <button
           onClick={onLogout}

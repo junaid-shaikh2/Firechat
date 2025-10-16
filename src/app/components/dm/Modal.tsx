@@ -24,7 +24,6 @@ export default function Modal({
           {message}
         </p>
 
-        {/* Buttons */}
         <div className="flex flex-wrap justify-center sm:justify-end gap-3  mt-3 w-auto mx-5 sm:w-auto">
           <button
             onClick={onClose}
