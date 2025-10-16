@@ -19,7 +19,10 @@ export default function ChatWindow({
   onDeleteMessages,
   audioBlob,
   setAudioBlob,
-}: ChatWindowProps & { onDeleteMessages: (ids: string[]) => void }) {
+}: ChatWindowProps & {
+  onDeleteMessages: (ids: string[]) => void;
+  messagesEndRef: React.RefObject<HTMLDivElement>;
+}) {
   const [selectedMessages, setSelectedMessages] = useState<string[]>([]);
   const isSelectionMode = selectedMessages.length > 0;
 
@@ -83,7 +86,6 @@ export default function ChatWindow({
       {!isSelectionMode && (
         <div className="relative p-3 border-t bg-white">
           <div className="flex items-center gap-2 w-full">
-            {/* Image Upload */}
             <input
               type="file"
               id="imageUpload"

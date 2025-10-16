@@ -45,7 +45,9 @@ export default function DMPage() {
   );
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(
+    null!
+  ) as React.RefObject<HTMLDivElement>;
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.innerWidth > 768) {
@@ -59,7 +61,7 @@ export default function DMPage() {
       if (user)
         setCurrentUser({
           uid: user.uid,
-          email: user.email!,
+          email: user.email || "",
           name: user.displayName || user.email?.split("@")[0],
         });
     });

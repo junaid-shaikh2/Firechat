@@ -2,7 +2,7 @@ import type React from "react"
 export interface User {
   uid: string
   name?: string
-  email?: string
+  email: string
 }
 
 export interface ChatHeaderProps {

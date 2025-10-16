@@ -1,8 +1,8 @@
 "use client";
 import { ChatHeaderProps } from "@/app/types/interface";
 import Image from "next/image";
-import { Binary, ChevronLeft, MoreVertical, Trash2 } from "lucide-react";
-import { useState, useRef } from "react";
+import { ChevronLeft, MoreVertical, Trash2 } from "lucide-react";
+import { useState } from "react";
 
 // among these import above chevronleft, morevertical, trash2 the chevron is a left arrow, morevertical is three dots in vertical line and trash2 is a trash can
 
