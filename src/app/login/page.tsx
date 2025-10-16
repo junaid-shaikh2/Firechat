@@ -184,7 +184,9 @@ export default function AuthPage() {
               htmlFor="email"
               className="absolute left-3 top-2.5 bg-white px-1 text-gray-500 transition-all duration-200
               peer-placeholder-shown:top-3 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base
-              peer-focus:-top-2 peer-focus:text-sm peer-valid:-top-2 peer-valid:text-sm"
+              peer-focus:-top-2 peer-focus:text-sm
+peer-[&:not(:placeholder-shown)]:-top-2 peer-[&:not(:placeholder-shown)]:text-sm
+"
             >
               Email
             </label>

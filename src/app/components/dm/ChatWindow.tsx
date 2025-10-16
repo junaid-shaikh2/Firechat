@@ -172,7 +172,7 @@ export default function ChatWindow({
             ) : (
               <button
                 onClick={startRecording}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full w-10 h-10 flex items-center justify-center shadow"
+                className="bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full w-10 h-10 flex items-center justify-center shadow cursor-pointer"
               >
                 <Mic size={18} />
               </button>
@@ -181,7 +181,7 @@ export default function ChatWindow({
             <button
               onClick={onSendMessage}
               disabled={!newMessage.trim() && !image && !audioBlob}
-              className="bg-blue-500 flex-shrink-0 hover:bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold shadow"
+              className="bg-blue-500 flex-shrink-0 hover:bg-blue-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold shadow cursor-pointer"
             >
               ↑
             </button>

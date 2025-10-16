@@ -130,13 +130,16 @@ export default function MessageBubble({
           } gap-1 max-w-[85%]`}
         >
           <div
-            className={`relative group break-words shadow-md transition-all duration-200 rounded-2xl text-sm ${
+            className={`relative  group break-words shadow-md transition-all duration-200 rounded-2xl text-sm ${
               hasAudio
                 ? "p-3"
                 : hasText
                   ? "sm:px-4 sm:py-2 px-2 py-[6px]"
                   : "px-0.5 pt-0.5 pb-0.5"
-            } ${
+            }
+  
+            
+            ${
               isOwn
                 ? "bg-blue-500 text-white rounded-br-none"
                 : "bg-white text-gray-800 rounded-bl-none"
@@ -151,7 +154,7 @@ export default function MessageBubble({
                 width={200}
                 height={200}
                 unoptimized
-                className="rounded-md m-0.5 border border-gray-300"
+                className="rounded-xl m-0.5 border border-gray-300"
               />
             )}
 

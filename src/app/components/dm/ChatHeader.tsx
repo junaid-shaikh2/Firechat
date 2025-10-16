@@ -1,9 +1,10 @@
-// ChatHeader.tsx
 "use client";
 import { ChatHeaderProps } from "@/app/types/interface";
 import Image from "next/image";
-import { ChevronLeft, MoreVertical, Trash2 } from "lucide-react";
+import { Binary, ChevronLeft, MoreVertical, Trash2 } from "lucide-react";
 import { useState, useRef } from "react";
+
+// among these import above chevronleft, morevertical, trash2 the chevron is a left arrow, morevertical is three dots in vertical line and trash2 is a trash can
 
 export default function ChatHeader({
   user,
@@ -25,7 +26,7 @@ export default function ChatHeader({
           className="sm:hidden text-gray-600 hover:text-black flex-shrink-0"
           aria-label="Back"
         >
-          <ChevronLeft className="w-6 h-6" />
+          <ChevronLeft className="w-6 cursor-pointer h-6" />
         </button>
 
         <Image
@@ -59,7 +60,7 @@ export default function ChatHeader({
                 setMenuOpen(false);
                 onDeleteChat?.();
               }}
-              className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 text-red-600 w-full"
+              className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 text-red-600 w-full cursor-pointer"
             >
               <Trash2 size={14} />
               Delete Chat
@@ -69,7 +70,7 @@ export default function ChatHeader({
                 setMenuOpen(false);
                 onLogout?.();
               }}
-              className="flex cursor-pointer text-gray-800 font items-center gap-2 px-3 py-2 hover:bg-gray-100 w-full"
+              className="flex rounded cursor-pointer text-gray-800 font items-center gap-2 px-3 py-2 hover:bg-gray-100 w-full"
             >
               Logout
             </button>
