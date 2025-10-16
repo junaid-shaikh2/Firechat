@@ -120,7 +120,7 @@ export default function ChatWindow({
               </div>
             )}
 
-            {/* 🎤 Simplified Audio Preview */}
+            {/* Simplified Audio Preview */}
             {audioBlob && (
               <div className="absolute bottom-full left-0 mb-2 bg-white shadow-md rounded-xl px-3 py-2 flex items-center justify-between w-56 border">
                 <div className="flex items-center gap-2">
@@ -146,7 +146,6 @@ export default function ChatWindow({
               <ImageIcon />
             </label>
 
-            {/* Message Input */}
             <input
               ref={inputRef}
               type="text"
@@ -165,7 +164,6 @@ export default function ChatWindow({
               }}
             />
 
-            {/* Mic Button */}
             {isRecording ? (
               <button
                 onClick={stopRecording}
@@ -182,7 +180,6 @@ export default function ChatWindow({
               </button>
             )}
 
-            {/* Send Button */}
             <button
               onClick={onSendMessage}
               disabled={!newMessage.trim() && !image && !audioBlob}
