@@ -16,7 +16,12 @@ export interface MessageBubbleProps {
   msg: Message
   isOwn: boolean
   showDate?: boolean
+  onSelect?: (msgId: string) => void
+  isSelected?: boolean
+  isSelectionMode?: boolean
+  onDeleteSingle?: (msgId: string) => void
 }
+
 
 export interface Message {
   id?: string

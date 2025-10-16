@@ -25,6 +25,7 @@ export default function ChatWindow({
 }) {
   const [selectedMessages, setSelectedMessages] = useState<string[]>([]);
   const isSelectionMode = selectedMessages.length > 0;
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -42,7 +43,14 @@ export default function ChatWindow({
     onDeleteMessages(selectedMessages);
     clearSelection();
   };
-  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Helper: format date string
+  const getDateString = (timestamp: any) => {
+    const d = new Date(
+      "seconds" in timestamp ? timestamp.seconds * 1000 : timestamp
+    );
+    return d.toDateString();
+  };
 
   return (
     <div className="flex-1 flex flex-col h-full min-h-0 bg-[#E5E5EA] overflow-hidden">
@@ -63,16 +71,25 @@ export default function ChatWindow({
         </div>
       )}
 
+      {/* messages */}
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2 overscroll-contain">
         {messages.map((msg, index) => {
           const isOwn = msg.from === currentUser?.uid;
+
+          // Determine whether to show date header
+          const currentDate = msg.timestamp ? getDateString(msg.timestamp) : "";
+          const prevDate =
+            index > 0 && messages[index - 1].timestamp
+              ? getDateString(messages[index - 1].timestamp)
+              : "";
+          const showDate = currentDate !== prevDate;
 
           return (
             <MessageBubble
               key={msg.id || index}
               msg={msg}
               isOwn={isOwn}
-              showDate={false}
+              showDate={showDate}
               onSelect={toggleSelect}
               isSelected={selectedMessages.includes(msg.id!)}
               isSelectionMode={isSelectionMode}
@@ -86,6 +103,7 @@ export default function ChatWindow({
       {!isSelectionMode && (
         <div className="relative p-3 border-t bg-white">
           <div className="flex items-center gap-2 w-full">
+            {/* Image Upload */}
             <input
               type="file"
               id="imageUpload"
@@ -122,7 +140,7 @@ export default function ChatWindow({
               </div>
             )}
 
-            {/* Simplified Audio Preview */}
+            {/* Audio Preview */}
             {audioBlob && (
               <div className="absolute bottom-full left-0 mb-2 bg-white shadow-md rounded-xl px-3 py-2 flex items-center justify-between w-56 border">
                 <div className="flex items-center gap-2">
