@@ -132,9 +132,9 @@ export default function MessageBubble({
           <div
             className={`relative  group break-words shadow-md transition-all duration-200 rounded-2xl text-sm ${
               hasAudio
-                ? "p-3"
+                ? "p-2"
                 : hasText
-                  ? "sm:px-4 sm:py-2 px-2 py-[6px]"
+                  ? "sm:px-4 sm:py-2 px-2 py-[6px] min-w-0 flex-1"
                   : "px-0.5 pt-0.5 pb-0.5"
             }
   
@@ -159,19 +159,21 @@ export default function MessageBubble({
             )}
 
             {hasAudio && (
-              <div className="flex items-center gap-3 w-52 max-w-full">
+              <div className="flex  items-center gap-2 sm:w-40">
                 <button
                   onClick={togglePlay}
-                  className={`p-2 rounded-full ${
+                  className={`p-1 rounded-full ${
                     isOwn ? "bg-white text-blue-500" : "bg-blue-500 text-white"
                   } shadow hover:scale-105 transition`}
                 >
                   {isPlaying ? <Pause size={16} /> : <Play size={16} />}
                 </button>
+                {/* making the vm shrink with the screen size  */}
+
                 <div className="flex-1">
-                  <div className="w-full h-1 bg-gray-300 rounded-full overflow-hidden">
+                  <div className="w-full flex-1 h-1 bg-gray-300 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-blue-500 transition-all"
+                      className="h-full bg-blue-800 transition-all"
                       style={{ width: `${progress}%` }}
                     ></div>
                   </div>
@@ -200,19 +202,19 @@ export default function MessageBubble({
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="p-1 rounded-full hover:bg-gray-100 text-gray-600 transition"
+                className="p-0.5 rounded-full hover:bg-gray-100 text-gray-600 transition"
               >
                 <MoreVertical size={16} />
               </button>
 
               {menuOpen && (
-                <div className="absolute top-1 -left-20 z-50 bg-white border border-gray-200 rounded-lg shadow-lg px-2 py-1 animate-fade-in">
+                <div className="absolute top-[-1] -left-16 z-50 bg-white border border-gray-200 rounded-lg shadow-lg px-1 py-1 animate-fade-in">
                   <button
                     onClick={() => {
                       onDeleteSingle(msg.id!);
                       setMenuOpen(false);
                     }}
-                    className="flex items-center gap-1 text-xs text-red-600 hover:text-red-700"
+                    className="flex items-center gap-0.5 text-xs text-red-600 hover:text-red-700"
                   >
                     <Trash2 size={12} />
                     Delete

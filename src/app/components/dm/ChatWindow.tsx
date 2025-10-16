@@ -2,8 +2,7 @@
 import { useEffect, useState, useRef } from "react";
 import MessageBubble from "./MessageBubble";
 import type { ChatWindowProps } from "@/app/types/interface";
-import { Trash2 } from "lucide-react";
-import { Mic, Square } from "lucide-react";
+import { Trash2, Mic, Square, ImageIcon, X } from "lucide-react";
 
 export default function ChatWindow({
   currentUser,
@@ -64,11 +63,6 @@ export default function ChatWindow({
       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2 overscroll-contain">
         {messages.map((msg, index) => {
           const isOwn = msg.from === currentUser?.uid;
-          const msgDate = msg.timestamp
-            ? "seconds" in msg.timestamp
-              ? new Date(msg.timestamp.seconds * 1000).toLocaleDateString()
-              : msg.timestamp.toLocaleDateString()
-            : "";
 
           return (
             <MessageBubble
@@ -89,6 +83,7 @@ export default function ChatWindow({
       {!isSelectionMode && (
         <div className="relative p-3 border-t bg-white">
           <div className="flex items-center gap-2 w-full">
+            {/* Image Upload */}
             <input
               type="file"
               id="imageUpload"
@@ -104,6 +99,8 @@ export default function ChatWindow({
                 }
               }}
             />
+
+            {/* Image Preview */}
             {image && (
               <div className="absolute bottom-full left-0 mb-2 bg-white shadow-md rounded-lg p-2 flex items-center gap-2 border">
                 <img
@@ -122,18 +119,22 @@ export default function ChatWindow({
                 </button>
               </div>
             )}
+
+            {/* 🎤 Simplified Audio Preview */}
             {audioBlob && (
-              <div className="absolute bottom-full left-0 mb-2 bg-white shadow-md rounded-lg p-2 flex items-center gap-2 border">
-                <audio
-                  controls
-                  src={URL.createObjectURL(audioBlob)}
-                  className="w-32"
-                />
+              <div className="absolute bottom-full left-0 mb-2 bg-white shadow-md rounded-xl px-3 py-2 flex items-center justify-between w-56 border">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-blue-100 rounded-full text-blue-600">
+                    <Mic size={16} />
+                  </div>
+                  <span className="text-sm text-gray-700">Recorded</span>
+                </div>
                 <button
                   onClick={() => setAudioBlob(null)}
-                  className="text-red-500 text-xs hover:underline"
+                  className="p-1 text-gray-500 hover:bg-gray-200 rounded-full transition"
+                  aria-label="Remove voice message"
                 >
-                  ✕
+                  <X size={14} />
                 </button>
               </div>
             )}
@@ -142,9 +143,10 @@ export default function ChatWindow({
               htmlFor="imageUpload"
               className="cursor-pointer flex-shrink-0 bg-gray-100 text-gray-600 text-2xl hover:bg-gray-200 rounded-full w-10 h-10 flex items-center justify-center"
             >
-              +
+              <ImageIcon />
             </label>
 
+            {/* Message Input */}
             <input
               ref={inputRef}
               type="text"
@@ -162,6 +164,8 @@ export default function ChatWindow({
                 }
               }}
             />
+
+            {/* Mic Button */}
             {isRecording ? (
               <button
                 onClick={stopRecording}
@@ -178,6 +182,7 @@ export default function ChatWindow({
               </button>
             )}
 
+            {/* Send Button */}
             <button
               onClick={onSendMessage}
               disabled={!newMessage.trim() && !image && !audioBlob}

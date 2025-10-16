@@ -12,23 +12,27 @@ import { auth, db } from "../lib/firebase";
 import { setDoc, doc, getDoc } from "firebase/firestore";
 import Image from "next/image";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
-import { FirebaseError } from "firebase/app"; // Import FirebaseError if necessary
+import { FirebaseError } from "firebase/app";
 
 export default function AuthPage() {
   const [isSignup, setIsSignup] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+
+  // 🆕 separate loading states
+  const [loadingEmail, setLoadingEmail] = useState(false);
+  const [loadingGoogle, setLoadingGoogle] = useState(false);
+
   const [error, setError] = useState("");
   const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const provider = new GoogleAuthProvider();
 
-  // 🔹 Google Sign-in
+  //  🔹 Google Sign-in
   const signInWithGoogle = async () => {
     try {
-      setLoading(true);
+      setLoadingGoogle(true);
       setError("");
 
       const result = await signInWithPopup(auth, provider);
@@ -62,14 +66,14 @@ export default function AuthPage() {
 
       setError(message);
     } finally {
-      setLoading(false);
+      setLoadingGoogle(false);
     }
   };
 
-  // 🔹 Email/Password Auth (Login or Signup)
+  //  🔹 Email/Password Auth (Login or Signup)
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setLoadingEmail(true);
     setError("");
 
     try {
@@ -126,7 +130,7 @@ export default function AuthPage() {
 
       setError(message);
     } finally {
-      setLoading(false);
+      setLoadingEmail(false);
     }
   };
 
@@ -224,11 +228,11 @@ peer-[&:not(:placeholder-shown)]:-top-2 peer-[&:not(:placeholder-shown)]:text-sm
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loadingEmail || loadingGoogle}
             className={`w-full py-2.5 rounded-xl cursor-pointer text-white font-medium transition-transform duration-200
-            ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-black hover:bg-gray-800 hover:scale-[1.02]"}`}
+            ${loadingEmail ? "bg-gray-400 cursor-not-allowed" : "bg-black hover:bg-gray-800 hover:scale-[1.02]"}`}
           >
-            {loading ? "Loading..." : isSignup ? "Sign Up" : "Login"}
+            {loadingEmail ? "Loading..." : isSignup ? "Sign Up" : "Login"}
           </button>
         </form>
 
@@ -244,17 +248,13 @@ peer-[&:not(:placeholder-shown)]:-top-2 peer-[&:not(:placeholder-shown)]:text-sm
           <button
             type="button"
             onClick={signInWithGoogle}
-            disabled={loading}
+            disabled={loadingEmail || loadingGoogle}
             className="w-full py-2.5 cursor-pointer rounded-xl bg-white border border-gray-300 text-black font-medium hover:bg-gray-100 hover:shadow-md transition-all duration-200 flex items-center justify-center gap-2"
           >
-            {loading ? (
+            {loadingGoogle ? (
               "Loading..."
             ) : (
               <>
-                <div
-                  className="cursor-pointer"
-                  onClick={signInWithGoogle}
-                ></div>
                 <Image
                   src="/google-logo.png"
                   alt="Google Logo"
@@ -267,7 +267,6 @@ peer-[&:not(:placeholder-shown)]:-top-2 peer-[&:not(:placeholder-shown)]:text-sm
           </button>
         </div>
 
-        {/* Error message */}
         {error && (
           <p className="mt-4 text-center text-red-600 text-sm">{error}</p>
         )}
