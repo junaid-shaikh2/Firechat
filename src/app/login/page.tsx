@@ -19,7 +19,6 @@ export default function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // 🆕 separate loading states
   const [loadingEmail, setLoadingEmail] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
 
@@ -29,7 +28,6 @@ export default function AuthPage() {
   const router = useRouter();
   const provider = new GoogleAuthProvider();
 
-  //  🔹 Google Sign-in
   const signInWithGoogle = async () => {
     try {
       setLoadingGoogle(true);
@@ -70,7 +68,7 @@ export default function AuthPage() {
     }
   };
 
-  //  🔹 Email/Password Auth (Login or Signup)
+  //   Email/Password Auth (Login or Signup)
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoadingEmail(true);
@@ -137,7 +135,6 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7] relative overflow-hidden px-4">
       <div className="relative z-10 bg-white p-6 sm:p-8 rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.08)] w-full max-w-sm border border-gray-100 transition-all duration-300 hover:scale-[1.01] hover:shadow-[0_15px_40px_rgba(0,0,0,0.1)]">
-        {/* Apple-style top dots */}
         <div className="flex items-center justify-center gap-3 mb-4">
           <span className="w-3 h-3 rounded-full bg-[#1c1c1c]" />
           <span className="w-3 h-3 rounded-full bg-[#3a3a3a]" />
@@ -236,7 +233,6 @@ peer-[&:not(:placeholder-shown)]:-top-2 peer-[&:not(:placeholder-shown)]:text-sm
           </button>
         </form>
 
-        {/* Divider */}
         <div className="mt-6">
           <div className="flex items-center my-4">
             <div className="flex-grow border-t border-gray-300"></div>
@@ -244,7 +240,6 @@ peer-[&:not(:placeholder-shown)]:-top-2 peer-[&:not(:placeholder-shown)]:text-sm
             <div className="flex-grow border-t border-gray-300"></div>
           </div>
 
-          {/* Google sign-in button */}
           <button
             type="button"
             onClick={signInWithGoogle}
