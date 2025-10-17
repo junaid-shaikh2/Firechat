@@ -224,22 +224,6 @@ export default function MessageBubble({
           )}
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: translateY(-5px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fade-in {
-          animation: fadeIn 0.15s ease-out;
-        }
-      `}</style>
     </>
   );
 }
