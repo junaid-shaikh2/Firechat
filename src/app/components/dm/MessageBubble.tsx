@@ -201,7 +201,7 @@ export default function MessageBubble({
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="p-0.5 rounded-full hover:bg-gray-100 text-gray-600 transition cursor-pointer"
+                className="p-0 rounded-full hover:bg-gray-100 text-gray-600 transition cursor-pointer"
               >
                 <MoreVertical size={16} />
               </button>
@@ -213,7 +213,7 @@ export default function MessageBubble({
                       onDeleteSingle(msg.id!);
                       setMenuOpen(false);
                     }}
-                    className="flex cursor-pointer items-center gap-0.5 text-xs text-red-600 hover:text-red-700"
+                    className="flex cursor-pointer items-center gap-0.5 text-[8px] sm:text-xs text-red-600 hover:text-red-700"
                   >
                     <Trash2 size={12} />
                     Delete

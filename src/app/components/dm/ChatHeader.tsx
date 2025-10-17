@@ -8,12 +8,18 @@ import { useState } from "react";
 
 export default function ChatHeader({
   user,
+  currentUser,
   onBack,
   onLogout,
   onDeleteChat,
   className = "",
 }: ChatHeaderProps & { onDeleteChat?: () => void }) {
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // Show the avatar of the logged-in user in the chat header
+  const avatarSrc = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+    currentUser.name || currentUser.email || "User"
+  )}&background=random&color=fff&size=64`;
 
   return (
     <div
@@ -47,14 +53,27 @@ export default function ChatHeader({
       <div className="flex items-center gap-2 relative">
         <button
           onClick={() => setMenuOpen(!menuOpen)}
+          className="rounded-full overflow-hidden w-10 h-10 border cursor-pointer hover:opacity-90 transition"
+          aria-label="User Menu"
+        >
+          <Image
+            src={avatarSrc}
+            alt="User Avatar"
+            width={40}
+            height={40}
+            className="rounded-full"
+          />
+        </button>
+        {/* <button
+          onClick={() => setMenuOpen(!menuOpen)}
           className="p-2 rounded-full cursor-pointer hover:bg-gray-100"
           aria-label="Options"
         >
           <MoreVertical size={20} className="text-gray-700" />
-        </button>
+        </button> */}
 
         {menuOpen && (
-          <div className=" cursor-pointer absolute right-0 top-10 bg-white shadow-lg rounded-lg w-36 border z-50">
+          <div className=" cursor-pointer absolute right-2 top-12 max-sm:right-2 max-sm:top-11 bg-white shadow-lg rounded-lg w-36 text-sm sm:text-base border z-50">
             <button
               onClick={() => {
                 setMenuOpen(false);

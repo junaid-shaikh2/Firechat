@@ -10,6 +10,7 @@ export interface ChatHeaderProps {
   onLogout?: () => void
   onBack?: () => void
   className?: string
+  currentUser: User
 }
 
 export interface MessageBubbleProps {

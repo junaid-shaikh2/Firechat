@@ -316,6 +316,7 @@ export default function DMPage() {
           <>
             <ChatHeader
               user={selectedUser}
+              currentUser={currentUser!}
               onBack={() => setIsSidebarOpen(true)}
               onLogout={() => setIsModalOpen(true)}
               onDeleteChat={() => setDeleteConfirmOpen(true)}
