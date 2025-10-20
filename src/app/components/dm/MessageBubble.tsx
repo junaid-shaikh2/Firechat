@@ -185,7 +185,7 @@ export default function MessageBubble({
                       isOwn
                         ? "bg-white text-blue-500"
                         : "bg-blue-500 text-white"
-                    } shadow hover:scale-105 transition flex-shrink-0`}
+                    } shadow hover:scale-105 transition cursor-pointer flex-shrink-0`}
                   >
                     {isPlaying ? <Pause size={16} /> : <Play size={16} />}
                   </button>

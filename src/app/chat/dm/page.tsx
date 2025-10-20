@@ -453,6 +453,16 @@ export default function DMPage() {
         onLogout={() => setIsModalOpen(true)}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
+        user={
+          currentUser ?? {
+            uid: "",
+            name: "",
+            email: "",
+            isOnline: false,
+            lastSeen: new Date(),
+          }
+        }
+        lastMessage={messages[messages.length - 1]}
         className="z-30"
       />
 

@@ -3,6 +3,8 @@ import { useEffect, useState, useRef } from "react";
 import MessageBubble from "./MessageBubble";
 import type { ChatWindowProps } from "@/app/types/interface";
 import { Trash2, Mic, Square, ImageIcon, X } from "lucide-react";
+import { Timestamp } from "firebase/firestore";
+import Image from "next/image";
 
 export default function ChatWindow({
   currentUser,
@@ -48,7 +50,7 @@ export default function ChatWindow({
     clearSelection();
   };
 
-  const getDateString = (timestamp: any) => {
+  const getDateString = (timestamp: Timestamp | Date) => {
     const d = new Date(
       "seconds" in timestamp ? timestamp.seconds * 1000 : timestamp
     );
@@ -63,11 +65,14 @@ export default function ChatWindow({
           <div className="flex gap-3 items-center">
             <button
               onClick={confirmDelete}
-              className="hover:bg-blue-600 p-2 rounded-full transition"
+              className="hover:bg-blue-600 p-2 rounded-full cursor-pointer transition"
             >
               <Trash2 size={18} />
             </button>
-            <button onClick={clearSelection} className="text-sm underline">
+            <button
+              onClick={clearSelection}
+              className="text-sm cursor-pointer underline"
+            >
               Cancel
             </button>
           </div>
@@ -78,10 +83,34 @@ export default function ChatWindow({
         {messages.map((msg, index) => {
           const isOwn = msg.from === currentUser?.uid;
 
-          const currentDate = msg.timestamp ? getDateString(msg.timestamp) : "";
+          const currentDate = msg.timestamp
+            ? getDateString(
+                "seconds" in msg.timestamp
+                  ? new Timestamp(
+                      msg.timestamp.seconds,
+                      msg.timestamp.nanoseconds
+                    )
+                  : msg.timestamp
+              )
+            : "";
           const prevDate =
             index > 0 && messages[index - 1].timestamp
-              ? getDateString(messages[index - 1].timestamp)
+              ? getDateString(
+                  (() => {
+                    const ts = messages[index - 1].timestamp;
+                    if (ts instanceof Timestamp || ts instanceof Date)
+                      return ts;
+                    if (
+                      ts &&
+                      typeof ts === "object" &&
+                      "seconds" in ts &&
+                      "nanoseconds" in ts
+                    ) {
+                      return new Timestamp(ts.seconds, ts.nanoseconds);
+                    }
+                    return ts as Date;
+                  })()
+                )
               : "";
           const showDate = currentDate !== prevDate;
 
@@ -124,10 +153,12 @@ export default function ChatWindow({
 
             {image && (
               <div className="absolute bottom-full left-0 mb-2 bg-white shadow-md rounded-lg p-2 flex items-center gap-2 border">
-                <img
+                <Image
                   src={URL.createObjectURL(image)}
                   alt="preview"
                   className="w-10 h-10 object-cover rounded"
+                  width={40}
+                  height={40}
                 />
                 <span className="text-sm text-gray-700 truncate max-w-[120px]">
                   {image.name}

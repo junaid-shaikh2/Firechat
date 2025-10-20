@@ -3,7 +3,7 @@ import { ChatHeaderProps } from "@/app/types/interface";
 import Image from "next/image";
 import { ChevronLeft, Trash2 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import { doc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot, Timestamp } from "firebase/firestore";
 import { db } from "@/app/lib/firebase";
 
 export default function ChatHeader({
@@ -81,8 +81,8 @@ export default function ChatHeader({
               : liveUser.lastSeen
                 ? `Last seen ${new Date(
                     "seconds" in (liveUser.lastSeen || {})
-                      ? (liveUser.lastSeen as any).toDate()
-                      : liveUser.lastSeen
+                      ? (liveUser.lastSeen as Timestamp).toDate()
+                      : (liveUser.lastSeen as Date)
                   ).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",

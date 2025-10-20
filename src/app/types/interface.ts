@@ -83,4 +83,6 @@ export interface SidebarProps {
   isOpen?: boolean;
   onClose?: () => void;
   className?: string;
+  user: User;
+  lastMessage?: Message;
 }
