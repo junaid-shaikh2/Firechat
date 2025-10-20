@@ -34,10 +34,8 @@ export default function MessageBubble({
 
   const emojis = ["❤️", "😂", "👍", "😢", "🔥", "😮", "😡"];
 
-  // Close menu/picker when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      // Check if click is outside menu AND outside picker.
       const clickedNode = e.target as Node;
 
       const outsideMenu =
@@ -57,7 +55,6 @@ export default function MessageBubble({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [menuOpen, emojiPickerOpen]);
 
-  // Audio playback effects
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -99,7 +96,6 @@ export default function MessageBubble({
     return `${m}:${s}`;
   };
 
-  // Group reactions to array entries: msg.reactions is Record<string, string[]>
   const reactionCounts: [string, string[]][] = msg.reactions
     ? Object.entries(msg.reactions)
     : [];
@@ -108,30 +104,21 @@ export default function MessageBubble({
 
   const sortedReactionCounts = reactionCounts.sort(
     ([emojiA, uidsA], [emojiB, uidsB]) => {
-      // 1. Prioritize My Reaction (If I reacted with A, A comes first)
       const reactedWithA = myUid ? uidsA.includes(myUid) : false;
       const reactedWithB = myUid ? uidsB.includes(myUid) : false;
 
       if (reactedWithA && !reactedWithB) return -1;
       if (!reactedWithA && reactedWithB) return 1;
 
-      // 2. Secondary sort: By Count (Descending)
       if (uidsB.length !== uidsA.length) {
         return uidsB.length - uidsA.length;
       }
 
-      // 3. Tertiary sort: By Emoji string (Ensures stable order when counts are equal)
       return emojiA.localeCompare(emojiB);
     }
   );
 
   const msgId = msg.id || "";
-
-  // code structure in the return below is:
-  // date
-  // msg : text | image | audio + menu + emoji picker
-  // emoji settings (delete/react)
-  // reactions row
 
   return (
     <>
@@ -162,7 +149,6 @@ export default function MessageBubble({
             isOwn ? "flex-row-reverse" : "flex-row"
           } gap-1 max-w-[85%]`}
         >
-          {/* Container for Message Bubble and Menu */}
           <div className="relative flex">
             <div
               className={`relative  group break-words shadow-md transition-all duration-200 rounded-2xl text-sm ${
@@ -259,7 +245,6 @@ export default function MessageBubble({
             </div>
           </div>
 
-          {/* Emoji Picker (scroll + responsive) */}
           {emojiPickerOpen && (
             <div
               ref={pickerRef}
@@ -294,13 +279,11 @@ export default function MessageBubble({
             </div>
           )}
 
-          {/* three-dot menu: shown for all messages but delete only for own messages */}
           {!isSelectionMode && (
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => {
                   setMenuOpen(!menuOpen);
-                  // ensure the emoji picker is closed when opening menu
                   setEmojiPickerOpen(false);
                 }}
                 className="p-0.5 rounded-md hover:bg-gray-100 text-gray-600 transition cursor-pointer"
@@ -317,7 +300,6 @@ export default function MessageBubble({
                   <button
                     onClick={() => {
                       setMenuOpen(false);
-                      // open emoji picker
                       setEmojiPickerOpen(true);
                     }}
                     className={`flex cursor-pointer items-center gap-0.5 text-xs sm:text-sm text-blue-600 hover:text-blue-700 px-2 py-1 `}

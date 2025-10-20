@@ -40,7 +40,7 @@ export default function DMPage() {
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
     null
   );
-  const [isTyping, setIsTyping] = useState(false);
+  // const [isTyping, setIsTyping] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null!);
@@ -173,7 +173,6 @@ export default function DMPage() {
 
         setMessages(msgs);
 
-        // ✅ Mark all received (from selectedUser) messages as delivered
         msgs.forEach(async (msg) => {
           if (msg.to === currentUser.uid && msg.status === "sent") {
             const updated = msgs.map((m) =>
@@ -190,14 +189,12 @@ export default function DMPage() {
     return () => unsubscribe();
   }, [currentUser, selectedUser]);
 
-  // anaother one for when user opens the chat
   useEffect(() => {
     if (!currentUser || !selectedUser || messages.length === 0) return;
 
     const conversationId = [currentUser.uid, selectedUser.uid].sort().join("_");
     const convoRef = doc(db, "dmChats", conversationId);
 
-    // ✅ Mark all messages from the other user as read (seen)
     const updated = messages.map((msg) => {
       if (msg.from === selectedUser.uid && msg.status !== "read") {
         return { ...msg, status: "read" };
@@ -205,7 +202,6 @@ export default function DMPage() {
       return msg;
     });
 
-    // ✅ Update Firestore only if there’s actually a change
     const hasSeenChange = updated.some(
       (m, i) => m.status !== messages[i]?.status
     );
@@ -215,7 +211,6 @@ export default function DMPage() {
     }
   }, [selectedUser, messages, currentUser]);
 
-  // Listen for messages in current chat
   useEffect(() => {
     if (!currentUser || !selectedUser) return;
     const conversationId = [currentUser.uid, selectedUser.uid].sort().join("_");
@@ -232,7 +227,6 @@ export default function DMPage() {
     return () => unsubscribe();
   }, [currentUser, selectedUser]);
 
-  // 🔍 Search
   const searchUser = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.trim().toLowerCase();
     setSearchTerm(e.target.value);
@@ -247,7 +241,6 @@ export default function DMPage() {
     );
   };
 
-  // 💬 Select user
   const handleSelectUser = (user: User) => {
     setSelectedUser(user);
     if (window.innerWidth < 640) setIsSidebarOpen(false);
@@ -257,7 +250,6 @@ export default function DMPage() {
     );
   };
 
-  // ☁️ Cloudinary upload
   const uploadToCloudinary = async (file: File | Blob) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -271,22 +263,20 @@ export default function DMPage() {
     return data.secure_url as string;
   };
 
-  // 🔥 Listen for typing updates of the selected user
-  useEffect(() => {
-    if (!currentUser || !selectedUser) return;
+  // useEffect(() => {
+  //   if (!currentUser || !selectedUser) return;
 
-    const userRef = doc(db, "users", selectedUser.uid);
-    const unsubscribe = onSnapshot(userRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.data();
-        setIsTyping(data.typingTo === currentUser.uid);
-      }
-    });
+  //   const userRef = doc(db, "users", selectedUser.uid);
+  //   const unsubscribe = onSnapshot(userRef, (snapshot) => {
+  //     if (snapshot.exists()) {
+  //       const data = snapshot.data();
+  //       setIsTyping(data.typingTo === currentUser.uid);
+  //     }
+  //   });
 
-    return () => unsubscribe();
-  }, [currentUser, selectedUser]);
+  //   return () => unsubscribe();
+  // }, [currentUser, selectedUser]);
 
-  // 📨 Send message
   const sendMessage = async () => {
     if (
       (!newMessage.trim() && !image && !audioBlob) ||
@@ -346,7 +336,6 @@ export default function DMPage() {
     );
   };
 
-  // 😊 Reactions
   const handleReaction = async (msgId: string | undefined, emoji: string) => {
     if (!currentUser || !selectedUser || !msgId) return;
     const conversationId = [currentUser.uid, selectedUser.uid].sort().join("_");
@@ -380,7 +369,6 @@ export default function DMPage() {
     await updateDoc(convoRef, { messages: updated });
   };
 
-  // 🎙️ Audio Recording
   const startRecording = async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     const recorder = new MediaRecorder(stream);
@@ -405,7 +393,6 @@ export default function DMPage() {
     }
   };
 
-  // 🗑️ Delete messages
   const handleDeleteMessages = async (ids: string[]) => {
     if (!currentUser || !selectedUser) return;
     const conversationId = [currentUser.uid, selectedUser.uid].sort().join("_");

@@ -25,13 +25,11 @@ export default function Sidebar({
 
     const userRef = doc(db, "users", user.uid);
 
-    // Mark user online
     updateDoc(userRef, {
       isOnline: true,
       lastSeen: serverTimestamp(),
     });
 
-    // When user closes tab or goes offline
     const handleOffline = () => {
       updateDoc(userRef, {
         isOnline: false,
@@ -58,12 +56,9 @@ export default function Sidebar({
   return (
     <aside
       className={[
-        // Base (mobile drawer)
         "fixed   inset-y-0 left-0 z-40 bg-white border-r p-4 flex flex-col min-h-0 transform transition-transform duration-200",
         isOpen ? "translate-x-0" : "-translate-x-full",
-        // Desktop overrides
         "sm:static sm:translate-x-0 sm:inset-auto sm:z-auto sm:w-72",
-        // make mobile width sane and desktop width fixed
         "w-[85vw] max-w-xs sm:max-w-none",
         className,
       ].join(" ")}
@@ -111,7 +106,6 @@ export default function Sidebar({
             ].join(" ")}
             title={user.name || user.email}
           >
-            {/* User Avatar */}
             <div className="relative flex-shrink-0">
               <img
                 src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
@@ -120,7 +114,6 @@ export default function Sidebar({
                 alt="User Avatar"
                 className="w-10 h-10 rounded-full object-cover"
               />
-              {/* Online/Offline Indicator */}
               <span
                 className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
                   user.isOnline ? "bg-green-500" : "bg-gray-400"
@@ -128,7 +121,6 @@ export default function Sidebar({
               />
             </div>
 
-            {/* Name + Online/Last Seen */}
             <div className="flex flex-col truncate">
               <div className="font-medium">{user.name || user.email}</div>
               <div className="text-xs text-gray-700">
