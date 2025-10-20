@@ -9,7 +9,7 @@ import {
   updateDoc,
   onSnapshot,
 } from "firebase/firestore";
-import { Image as ImageIcon, Mic, Headphones } from "lucide-react";
+import { Image as ImageIcon, Mic } from "lucide-react";
 
 export default function Sidebar({
   users,
@@ -28,7 +28,6 @@ export default function Sidebar({
   >({});
   const list = searchTerm.trim() ? filteredUsers : users;
 
-  // Track user online/offline
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) return;
@@ -69,20 +68,16 @@ export default function Sidebar({
         if (!last) return;
 
         let preview = "";
-        const sender =
-          users.find((user) => user.uid === last.from)?.name || "Someone";
 
-        if (last.reactions && Object.keys(last.reactions).length > 0) {
-          const emoji = last.reactions[Object.keys(last.reactions)[0]];
-          if (last.image) {
-            preview = `${sender} reacted ${emoji} to [PHOTO]`;
-          } else if (last.audio) {
-            preview = `${sender} reacted ${emoji} to [AUDIO]`;
-          } else if (last.text) {
-            preview = `${sender} reacted ${emoji} to "${last.text.slice(0, 15)}..."`;
-          } else {
-            preview = `${sender} reacted ${emoji}`;
-          }
+        const isReactionOnly =
+          last.reactions &&
+          !last.text &&
+          !last.image &&
+          !last.audio &&
+          Object.keys(last.reactions).length > 0;
+
+        if (isReactionOnly) {
+          preview = ""; // hide reaction-only entries
         } else if (last.image) {
           preview = "__IMAGE__";
         } else if (last.audio) {
@@ -100,7 +95,7 @@ export default function Sidebar({
     });
 
     return () => unsubscribers.forEach((unsub) => unsub && unsub());
-  }, [list, users]);
+  }, [list]);
 
   return (
     <aside
@@ -112,7 +107,6 @@ export default function Sidebar({
         className,
       ].join(" ")}
     >
-      {/* Mobile header */}
       <div className="sm:hidden mb-3 flex items-center justify-between">
         <h2 className="font-semibold text-gray-800 text-md sm:text-large">
           Direct Messages
@@ -186,20 +180,10 @@ export default function Sidebar({
                       <Mic className="w-3.5 h-3.5 text-gray-600" />
                       <span>{preview.replace("__AUDIO__", "").trim()}</span>
                     </>
-                  ) : preview?.includes("reacted") &&
-                    preview.includes("[AUDIO]") ? (
-                    <>
-                      <Headphones className="w-3.5 h-3.5 text-gray-600" />
-                      <span>{preview.replace("[AUDIO]", "Audio")}</span>
-                    </>
-                  ) : preview?.includes("reacted") &&
-                    preview.includes("[PHOTO]") ? (
-                    <>
-                      <ImageIcon className="w-3.5 h-3.5 text-gray-600" />
-                      <span>{preview.replace("[PHOTO]", "Photo")}</span>
-                    </>
+                  ) : preview ? (
+                    <span>{preview}</span>
                   ) : (
-                    <span>{preview || "No messages yet"}</span>
+                    <span className="text-gray-400">No messages yet</span>
                   )}
                 </div>
               </div>
