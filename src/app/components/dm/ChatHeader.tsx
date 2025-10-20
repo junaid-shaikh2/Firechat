@@ -13,7 +13,7 @@ export default function ChatHeader({
   onLogout,
   onDeleteChat,
   className = "",
-}: ChatHeaderProps & { onDeleteChat?: () => void }) {
+}: ChatHeaderProps & { onDeleteChat: () => void }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [liveUser, setLiveUser] = useState(user);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -115,7 +115,7 @@ export default function ChatHeader({
             <button
               onClick={() => {
                 setMenuOpen(false);
-                onDeleteChat?.();
+                onDeleteChat();
               }}
               className="flex cursor-pointer hover:scale-[108%] rounded-2xl hover:text-red-600 items-center gap-2 px-3 py-2 hover:bg-gray-100 text-black w-full"
             >
