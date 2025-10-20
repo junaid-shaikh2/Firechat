@@ -30,12 +30,17 @@ export default function ChatWindow({
   onTyping?: (text: string) => void;
 }) {
   const [selectedMessages, setSelectedMessages] = useState<string[]>([]);
+  const [prevLength, setPrevLength] = useState(0);
   const isSelectionMode = selectedMessages.length > 0;
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // ✅ Only scroll when a new message is added
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, messagesEndRef]);
+    if (messages.length > prevLength) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+    setPrevLength(messages.length);
+  }, [messages, messagesEndRef, prevLength]);
 
   const toggleSelect = (id: string) => {
     setSelectedMessages((prev) =>
