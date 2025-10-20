@@ -19,9 +19,13 @@ export default function ChatWindow({
   onDeleteMessages,
   audioBlob,
   setAudioBlob,
+  onReact, // optional
+  onTyping,
 }: ChatWindowProps & {
   onDeleteMessages: (ids: string[]) => void;
   messagesEndRef: React.RefObject<HTMLDivElement>;
+  onReact?: (msgId: string, emoji: string) => void;
+  onTyping?: (text: string) => void;
 }) {
   const [selectedMessages, setSelectedMessages] = useState<string[]>([]);
   const isSelectionMode = selectedMessages.length > 0;
@@ -94,6 +98,8 @@ export default function ChatWindow({
               isSelected={selectedMessages.includes(msg.id!)}
               isSelectionMode={isSelectionMode}
               onDeleteSingle={(id) => onDeleteMessages([id])}
+              onReact={onReact}
+              currentUser={currentUser!}
             />
           );
         })}
@@ -170,7 +176,10 @@ export default function ChatWindow({
               ref={inputRef}
               type="text"
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={(e) => {
+                setNewMessage(e.target.value);
+                onTyping?.(e.target.value);
+              }}
               placeholder="Message"
               className="flex-1 min-w-0 border-none bg-gray-100 rounded-full px-4 py-3 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
               onKeyDown={(e) => {

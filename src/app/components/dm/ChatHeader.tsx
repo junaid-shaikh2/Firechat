@@ -1,10 +1,10 @@
 "use client";
 import { ChatHeaderProps } from "@/app/types/interface";
 import Image from "next/image";
-import { ChevronLeft, MoreVertical, Trash2 } from "lucide-react";
-import { useState } from "react";
-
-// among these import above chevronleft, morevertical, trash2 the chevron is a left arrow, morevertical is three dots in vertical line and trash2 is a trash can
+import { ChevronLeft, Trash2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "@/app/lib/firebase";
 
 export default function ChatHeader({
   user,
@@ -15,11 +15,39 @@ export default function ChatHeader({
   className = "",
 }: ChatHeaderProps & { onDeleteChat?: () => void }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [liveUser, setLiveUser] = useState(user);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  // Show the avatar of the logged-in user in the chat header
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    const unsub = onSnapshot(doc(db, "users", user.uid), (docSnap) => {
+      if (docSnap.exists()) {
+        setLiveUser((prev) => ({ ...prev, ...docSnap.data() }));
+      }
+    });
+
+    return () => unsub();
+  }, [user?.uid]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const avatarSrc = `https://ui-avatars.com/api/?name=${encodeURIComponent(
     currentUser.name || currentUser.email || "User"
   )}&background=random&color=fff&size=64`;
+
+  const contactAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+    liveUser.name || liveUser.email || "User"
+  )}&background=random&color=fff&size=64`;
+  if (!user) return null;
 
   return (
     <div
@@ -32,22 +60,36 @@ export default function ChatHeader({
           className="sm:hidden text-gray-600 hover:text-black flex-shrink-0"
           aria-label="Back"
         >
-          <ChevronLeft className="w-6 cursor-pointer h-6" />
+          <ChevronLeft className="w-6 h-6 cursor-pointer" />
         </button>
 
         <Image
-          src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
-            user.name || user.email || "User"
-          )}&background=random&color=fff&size=64`}
+          src={contactAvatar}
           alt="User Avatar"
           width={40}
           height={40}
           className="rounded-full hidden sm:inline-block flex-shrink-0"
         />
 
-        <span className="font-semibold text-gray-800 text-lg truncate max-w-[60vw] sm:max-w-none">
-          {user.name || user.email || "Unknown User"}
-        </span>
+        <div className="flex flex-col">
+          <span className="font-semibold text-gray-800 text-lg truncate max-w-[60vw] sm:max-w-none">
+            {liveUser.name || liveUser.email || "Unknown User"}
+          </span>
+          <span className="text-sm text-gray-500">
+            {liveUser.isOnline
+              ? "Online"
+              : liveUser.lastSeen
+                ? `Last seen ${new Date(
+                    "seconds" in (liveUser.lastSeen || {})
+                      ? (liveUser.lastSeen as any).toDate()
+                      : liveUser.lastSeen
+                  ).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}`
+                : "Offline"}
+          </span>
+        </div>
       </div>
 
       <div className="flex items-center gap-2 relative">
@@ -64,32 +106,28 @@ export default function ChatHeader({
             className="rounded-full"
           />
         </button>
-        {/* <button
-          onClick={() => setMenuOpen(!menuOpen)}
-          className="p-2 rounded-full cursor-pointer hover:bg-gray-100"
-          aria-label="Options"
-        >
-          <MoreVertical size={20} className="text-gray-700" />
-        </button> */}
 
         {menuOpen && (
-          <div className=" cursor-pointer absolute right-2 top-12 max-sm:right-2 max-sm:top-11 bg-white shadow-lg rounded-lg w-36 text-sm sm:text-base border z-50">
+          <div
+            ref={menuRef}
+            className="absolute text-xsm right-2 top-12 max-sm:right-2 max-sm:top-11 bg-white shadow-lg rounded-lg w-36 text-sm sm:text-base border z-50"
+          >
             <button
               onClick={() => {
                 setMenuOpen(false);
                 onDeleteChat?.();
               }}
-              className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 text-red-600 w-full cursor-pointer"
+              className="flex cursor-pointer hover:scale-[108%] rounded-2xl hover:text-red-600 items-center gap-2 px-3 py-2 hover:bg-gray-100 text-black w-full"
             >
-              <Trash2 size={14} />
               Delete Chat
+              <Trash2 size={13} className="text-sm sm:block " />
             </button>
             <button
               onClick={() => {
                 setMenuOpen(false);
                 onLogout?.();
               }}
-              className="flex rounded cursor-pointer text-gray-800 font items-center gap-2 px-3 py-2 hover:bg-gray-100 w-full"
+              className="flex cursor-pointer hover:scale-[108%] rounded-2xl items-center gap-2 px-3 py-2 hover:text-blue-500 hover:bg-gray-100 w-full text-gray-800 font"
             >
               Logout
             </button>

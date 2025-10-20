@@ -1,11 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import type React from "react";
-
 import { auth, db } from "../../lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { v4 as uuidv4 } from "uuid";
-
 import {
   collection,
   onSnapshot,
@@ -14,7 +10,9 @@ import {
   doc,
   updateDoc,
   setDoc,
+  serverTimestamp,
 } from "firebase/firestore";
+import { v4 as uuidv4 } from "uuid";
 
 import Sidebar from "../../components/dm/Sidebar";
 import ChatWindow from "../../components/dm/ChatWindow";
@@ -38,49 +36,131 @@ export default function DMPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
     null
   );
+  const [isTyping, setIsTyping] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
 
-  const messagesEndRef = useRef<HTMLDivElement>(
-    null!
-  ) as React.RefObject<HTMLDivElement>;
+  const messagesEndRef = useRef<HTMLDivElement>(null!);
 
+  // Sidebar open by default on desktop
   useEffect(() => {
     if (typeof window !== "undefined" && window.innerWidth > 768) {
-      setIsOpen(true);
+      setIsSidebarOpen(true);
     }
   }, []);
 
-  // Auth listener
+  // Handle user auth & online status
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user)
-        setCurrentUser({
+    let handleBeforeUnload: (() => void) | undefined;
+
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const userRef = doc(db, "users", user.uid);
+
+        const setOfflineStatus = async () => {
+          await updateDoc(userRef, {
+            isOnline: false,
+            lastSeen: serverTimestamp(),
+          });
+        };
+
+        const userSnap = await getDoc(userRef);
+        const newUserData: User = {
           uid: user.uid,
+          name: user.displayName || user.email?.split("@")[0] || "",
           email: user.email || "",
-          name: user.displayName || user.email?.split("@")[0],
-        });
+          isOnline: true,
+          lastSeen: new Date(),
+        };
+
+        if (!userSnap.exists()) {
+          await setDoc(userRef, {
+            ...newUserData,
+            lastSeen: serverTimestamp(),
+          });
+          setCurrentUser(newUserData);
+        } else {
+          await updateDoc(userRef, {
+            isOnline: true,
+            lastSeen: serverTimestamp(),
+          });
+          setCurrentUser((userSnap.data() as User) || newUserData);
+        }
+
+        handleBeforeUnload = setOfflineStatus;
+        window.addEventListener("beforeunload", handleBeforeUnload);
+      } else {
+        setCurrentUser(null);
+      }
     });
-    return () => unsubscribe();
+
+    return () => {
+      unsubscribe();
+      if (handleBeforeUnload)
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
   }, []);
 
-  // Load users except current
+  // for isTyping... (not implemented yet)
+
+  const typingTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const handleTyping = async (text: string) => {
+    setNewMessage(text);
+
+    if (!currentUser || !selectedUser) return;
+    const userRef = doc(db, "users", currentUser.uid);
+
+    // Mark typing
+    await updateDoc(userRef, { typingTo: selectedUser.uid });
+
+    // Clear old timeout if exists
+    if (typingTimeout.current) clearTimeout(typingTimeout.current);
+
+    // Stop typing after 2s of inactivity
+    typingTimeout.current = setTimeout(async () => {
+      await updateDoc(userRef, { typingTo: null });
+    }, 2000);
+  };
+
+  // Load & sort users by online status
   useEffect(() => {
     if (!currentUser) return;
     const unsubscribe = onSnapshot(collection(db, "users"), (snapshot) => {
       const usersList = snapshot.docs
         .map((d) => d.data() as User)
         .filter((u) => u.uid !== currentUser.uid);
-      setUsers(usersList);
-    });
-    return () => unsubscribe();
-  }, [currentUser]);
 
-  // Load messages
+      usersList.sort((a, b) => {
+        if (a.isOnline !== b.isOnline) return a.isOnline ? -1 : 1;
+        const nameA = a.name || a.email || "";
+        const nameB = b.name || b.email || "";
+        return nameA.localeCompare(nameB);
+      });
+
+      setUsers(usersList);
+
+      if (searchTerm.trim()) {
+        const term = searchTerm.toLowerCase();
+        setFilteredUsers(
+          usersList.filter(
+            (u) =>
+              u.name?.toLowerCase().includes(term) ||
+              u.email?.toLowerCase().includes(term)
+          )
+        );
+      } else {
+        setFilteredUsers([]);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [currentUser, searchTerm]);
+
+  // for seen deliver sent status
   useEffect(() => {
     if (!currentUser || !selectedUser) return;
     const conversationId = [currentUser.uid, selectedUser.uid].sort().join("_");
@@ -89,15 +169,70 @@ export default function DMPage() {
     const unsubscribe = onSnapshot(convoRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
-        setMessages((data.messages as Message[]) || []);
+        const msgs = (data.messages as Message[]) || [];
+
+        setMessages(msgs);
+
+        // ✅ Mark all received (from selectedUser) messages as delivered
+        msgs.forEach(async (msg) => {
+          if (msg.to === currentUser.uid && msg.status === "sent") {
+            const updated = msgs.map((m) =>
+              m.id === msg.id ? { ...m, status: "delivered" } : m
+            );
+            await updateDoc(convoRef, { messages: updated });
+          }
+        });
       } else {
         setMessages([]);
       }
     });
+
     return () => unsubscribe();
   }, [currentUser, selectedUser]);
 
-  // Search users
+  // anaother one for when user opens the chat
+  useEffect(() => {
+    if (!currentUser || !selectedUser || messages.length === 0) return;
+
+    const conversationId = [currentUser.uid, selectedUser.uid].sort().join("_");
+    const convoRef = doc(db, "dmChats", conversationId);
+
+    // ✅ Mark all messages from the other user as read (seen)
+    const updated = messages.map((msg) => {
+      if (msg.from === selectedUser.uid && msg.status !== "read") {
+        return { ...msg, status: "read" };
+      }
+      return msg;
+    });
+
+    // ✅ Update Firestore only if there’s actually a change
+    const hasSeenChange = updated.some(
+      (m, i) => m.status !== messages[i]?.status
+    );
+
+    if (hasSeenChange) {
+      updateDoc(convoRef, { messages: updated });
+    }
+  }, [selectedUser, messages, currentUser]);
+
+  // Listen for messages in current chat
+  useEffect(() => {
+    if (!currentUser || !selectedUser) return;
+    const conversationId = [currentUser.uid, selectedUser.uid].sort().join("_");
+    const convoRef = doc(db, "dmChats", conversationId);
+
+    const unsubscribe = onSnapshot(convoRef, (snapshot) => {
+      if (snapshot.exists()) {
+        setMessages((snapshot.data().messages as Message[]) || []);
+      } else {
+        setMessages([]);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [currentUser, selectedUser]);
+
+  // 🔍 Search
   const searchUser = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.trim().toLowerCase();
     setSearchTerm(e.target.value);
@@ -112,41 +247,46 @@ export default function DMPage() {
     );
   };
 
+  // 💬 Select user
   const handleSelectUser = (user: User) => {
     setSelectedUser(user);
-    if (typeof window !== "undefined" && window.innerWidth < 640) {
-      setIsSidebarOpen(false);
-    }
+    if (window.innerWidth < 640) setIsSidebarOpen(false);
     setTimeout(
       () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }),
       100
     );
   };
 
+  // ☁️ Cloudinary upload
   const uploadToCloudinary = async (file: File | Blob) => {
-    if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
-      throw new Error("Cloudinary environment variables are missing!");
-    }
-
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
-
-    const response = await fetch(
+    const res = await fetch(
       `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`,
       { method: "POST", body: formData }
     );
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("Cloudinary upload failed:", errText);
-      throw new Error("Upload failed: " + errText);
-    }
-
-    const data = await response.json();
+    if (!res.ok) throw new Error("Upload failed");
+    const data = await res.json();
     return data.secure_url as string;
   };
 
+  // 🔥 Listen for typing updates of the selected user
+  useEffect(() => {
+    if (!currentUser || !selectedUser) return;
+
+    const userRef = doc(db, "users", selectedUser.uid);
+    const unsubscribe = onSnapshot(userRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        setIsTyping(data.typingTo === currentUser.uid);
+      }
+    });
+
+    return () => unsubscribe();
+  }, [currentUser, selectedUser]);
+
+  // 📨 Send message
   const sendMessage = async () => {
     if (
       (!newMessage.trim() && !image && !audioBlob) ||
@@ -159,27 +299,10 @@ export default function DMPage() {
     const convoRef = doc(db, "dmChats", conversationId);
 
     let imageUrl: string | null = null;
-    if (image) {
-      try {
-        imageUrl = await uploadToCloudinary(image);
-      } catch (err) {
-        console.error("Image upload error:", err);
-        alert("Image upload failed. Check Cloudinary credentials and preset.");
-        return;
-      }
-    }
-
     let audioUrl: string | null = null;
-    if (audioBlob) {
-      try {
-        audioUrl = await uploadToCloudinary(audioBlob);
-      } catch (err) {
-        console.error("Audio upload error:", err);
-        alert("Audio upload failed. Check Cloudinary credentials and preset.");
-        return;
-      }
-      setAudioBlob(null);
-    }
+
+    if (image) imageUrl = await uploadToCloudinary(image);
+    if (audioBlob) audioUrl = await uploadToCloudinary(audioBlob);
 
     const newMsg: Message = {
       id: uuidv4(),
@@ -187,6 +310,8 @@ export default function DMPage() {
       to: selectedUser.uid,
       text: newMessage.trim() || "",
       timestamp: new Date(),
+      reactions: {},
+      status: "sent",
     };
 
     if (imageUrl) newMsg.image = imageUrl;
@@ -194,6 +319,7 @@ export default function DMPage() {
 
     setNewMessage("");
     setImage(null);
+    setAudioBlob(null);
 
     const convoSnap = await getDoc(convoRef);
     const lastMessage =
@@ -220,27 +346,56 @@ export default function DMPage() {
     );
   };
 
+  // 😊 Reactions
+  const handleReaction = async (msgId: string | undefined, emoji: string) => {
+    if (!currentUser || !selectedUser || !msgId) return;
+    const conversationId = [currentUser.uid, selectedUser.uid].sort().join("_");
+    const convoRef = doc(db, "dmChats", conversationId);
+    const convoSnap = await getDoc(convoRef);
+    if (!convoSnap.exists()) return;
+
+    const data = convoSnap.data();
+    const msgs: Message[] = (data.messages as Message[]) || [];
+
+    const updated = msgs.map((m) => {
+      if (m.id !== msgId) return m;
+      const reactions: Record<string, string[]> = { ...(m.reactions || {}) };
+      const alreadyReacted = reactions[emoji]?.includes(currentUser.uid);
+
+      for (const key in reactions) {
+        reactions[key] = reactions[key].filter(
+          (uid) => uid !== currentUser.uid
+        );
+        if (reactions[key].length === 0) delete reactions[key];
+      }
+
+      if (!alreadyReacted) {
+        if (!reactions[emoji]) reactions[emoji] = [];
+        reactions[emoji].push(currentUser.uid);
+      }
+
+      return { ...m, reactions };
+    });
+
+    await updateDoc(convoRef, { messages: updated });
+  };
+
+  // 🎙️ Audio Recording
   const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
-      const chunks: BlobPart[] = [];
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const recorder = new MediaRecorder(stream);
+    const chunks: BlobPart[] = [];
 
-      recorder.ondataavailable = (e) => chunks.push(e.data);
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: "audio/webm" });
-        setAudioBlob(blob);
-        setNewMessage("");
-        stream.getTracks().forEach((track) => track.stop());
-      };
+    recorder.ondataavailable = (e) => chunks.push(e.data);
+    recorder.onstop = () => {
+      const blob = new Blob(chunks, { type: "audio/webm" });
+      setAudioBlob(blob);
+      stream.getTracks().forEach((t) => t.stop());
+    };
 
-      recorder.start();
-      setMediaRecorder(recorder);
-      setIsRecording(true);
-    } catch (err) {
-      console.error("Mic access denied:", err);
-      alert("Please allow microphone access to record voice.");
-    }
+    recorder.start();
+    setMediaRecorder(recorder);
+    setIsRecording(true);
   };
 
   const stopRecording = () => {
@@ -250,6 +405,7 @@ export default function DMPage() {
     }
   };
 
+  // 🗑️ Delete messages
   const handleDeleteMessages = async (ids: string[]) => {
     if (!currentUser || !selectedUser) return;
     const conversationId = [currentUser.uid, selectedUser.uid].sort().join("_");
@@ -257,13 +413,12 @@ export default function DMPage() {
     const convoSnap = await getDoc(convoRef);
     if (!convoSnap.exists()) return;
 
-    const data = convoSnap.data();
-    const updatedMessages = (data.messages as Message[]).filter(
+    const updated = (convoSnap.data().messages as Message[]).filter(
       (m) => !ids.includes(m.id ?? "")
     );
 
-    await updateDoc(convoRef, { messages: updatedMessages });
-    setMessages(updatedMessages);
+    await updateDoc(convoRef, { messages: updated });
+    setMessages(updated);
   };
 
   const handleDeleteChat = async () => {
@@ -276,16 +431,19 @@ export default function DMPage() {
   };
 
   const handleLogout = async () => {
-    setIsModalOpen(false);
-    try {
-      await signOut(auth);
-      setCurrentUser(null);
-      setSelectedUser(null);
-      setMessages([]);
-      window.location.href = "/";
-    } catch (err) {
-      console.error(err);
+    if (currentUser) {
+      const userRef = doc(db, "users", currentUser.uid);
+      await updateDoc(userRef, {
+        isOnline: false,
+        lastSeen: serverTimestamp(),
+      });
     }
+    setIsModalOpen(false);
+    await signOut(auth);
+    setCurrentUser(null);
+    setSelectedUser(null);
+    setMessages([]);
+    window.location.href = "/";
   };
 
   return (
@@ -319,8 +477,6 @@ export default function DMPage() {
               currentUser={currentUser!}
               onBack={() => setIsSidebarOpen(true)}
               onLogout={() => setIsModalOpen(true)}
-              onDeleteChat={() => setDeleteConfirmOpen(true)}
-              className="z-30"
             />
             <ChatWindow
               messages={messages}
@@ -336,7 +492,9 @@ export default function DMPage() {
               startRecording={startRecording}
               stopRecording={stopRecording}
               onDeleteMessages={handleDeleteMessages}
+              onReact={handleReaction}
               image={image}
+              onTyping={handleTyping}
             />
           </>
         ) : (

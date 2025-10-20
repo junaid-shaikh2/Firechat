@@ -1,6 +1,9 @@
 "use client";
 import React from "react";
 import { SidebarProps } from "@/app/types/interface";
+import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { useEffect } from "react";
+import { auth, db } from "@/app/lib/firebase";
 
 export default function Sidebar({
   users,
@@ -15,6 +18,42 @@ export default function Sidebar({
   className = "",
 }: SidebarProps) {
   const list = searchTerm.trim() ? filteredUsers : users;
+
+  useEffect(() => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const userRef = doc(db, "users", user.uid);
+
+    // Mark user online
+    updateDoc(userRef, {
+      isOnline: true,
+      lastSeen: serverTimestamp(),
+    });
+
+    // When user closes tab or goes offline
+    const handleOffline = () => {
+      updateDoc(userRef, {
+        isOnline: false,
+        lastSeen: serverTimestamp(),
+      });
+    };
+
+    window.addEventListener("beforeunload", handleOffline);
+    window.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") handleOffline();
+      else
+        updateDoc(userRef, {
+          isOnline: true,
+          lastSeen: serverTimestamp(),
+        });
+    });
+
+    return () => {
+      handleOffline();
+      window.removeEventListener("beforeunload", handleOffline);
+    };
+  }, []);
 
   return (
     <aside
@@ -65,14 +104,48 @@ export default function Sidebar({
             key={user.uid}
             onClick={() => onSelectUser(user)}
             className={[
-              "p-2 rounded-xl cursor-pointer  text-sm transition min-w-0",
+              "flex items-center gap-3 p-2 rounded-xl cursor-pointer transition min-w-0",
               selectedUser?.uid === user.uid
-                ? "bg-gray-500 text-white font-semibold opacity-90"
+                ? "bg-gray-400 text-white font-semibold opacity-90"
                 : "hover:bg-gray-100 text-gray-800",
             ].join(" ")}
             title={user.name || user.email}
           >
-            <div className="truncate">{user.name || user.email}</div>
+            {/* User Avatar */}
+            <div className="relative flex-shrink-0">
+              <img
+                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
+                  user.name || user.email || "User"
+                )}&background=random&color=fff&size=64`}
+                alt="User Avatar"
+                className="w-10 h-10 rounded-full object-cover"
+              />
+              {/* Online/Offline Indicator */}
+              <span
+                className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${
+                  user.isOnline ? "bg-green-500" : "bg-gray-400"
+                }`}
+              />
+            </div>
+
+            {/* Name + Online/Last Seen */}
+            <div className="flex flex-col truncate">
+              <div className="font-medium">{user.name || user.email}</div>
+              <div className="text-xs text-gray-700">
+                {user.isOnline
+                  ? "Online"
+                  : user.lastSeen
+                    ? `Last seen ${new Date(
+                        "seconds" in (user.lastSeen || {})
+                          ? (user.lastSeen as any).toDate()
+                          : user.lastSeen
+                      ).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}`
+                    : "Offline"}
+              </div>
+            </div>
           </div>
         ))}
       </div>
